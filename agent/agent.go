@@ -25,6 +25,7 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 }
 
 func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
+
 	switch r := rand.Float32(); {
 	case r < 0.33:
 		direction := agent_response.Forward
