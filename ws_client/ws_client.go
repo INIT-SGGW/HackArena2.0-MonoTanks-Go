@@ -103,9 +103,6 @@ func (client *WebSocketClient) createReaderTask(agent *agent.Agent) {
 
 func (client *WebSocketClient) processMessage(message []byte, agent *agent.Agent) {
 
-	// Print raw message as string
-	// fmt.Printf("[System] 📩 Received message -> %s\n", message)
-
 	var p packet.Packet
 	if err := json.Unmarshal(message, &p); err != nil {
 		log.Printf("[System] 🚨 Error processing text message -> %v", err)
@@ -148,7 +145,6 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet, agent *agent.
 	case packet.GameStart:
 		fmt.Println("[System] 🎲 Game started")
 	case packet.GameStatePacket:
-		fmt.Println("[System] 🗺️ Game state received")
 
 		var gameState game_state.GameState
 		payloadBytes, err := json.Marshal(p.Payload)

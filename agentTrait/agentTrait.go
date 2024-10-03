@@ -1,21 +1,11 @@
 package agentTrait
 
-// Define necessary structs
-type AgentResponse struct {
-	// Define fields as per your requirements
-}
-
-type GameEnd struct {
-	// Define fields as per your requirements
-}
-
-type GameState struct {
-	// Define fields as per your requirements
-}
-
-type LobbyData struct {
-	// Define fields as per your requirements
-}
+import (
+	"hack-arena-2024-h2-go/packet/packets/agent_response"
+	"hack-arena-2024-h2-go/packet/packets/game_end"
+	"hack-arena-2024-h2-go/packet/packets/game_state"
+	"hack-arena-2024-h2-go/packet/packets/lobby_data"
+)
 
 // IAgent defines the behavior of an AI agent interacting with the game
 // by responding to game state updates and making decisions based on the current state.
@@ -29,7 +19,7 @@ type IAgent interface {
 	//
 	// Returns:
 	// - A new instance of the agent.
-	OnJoiningLobby(lobbyData LobbyData) IAgent
+	OnJoiningLobby(lobbyData *lobby_data.LobbyData) IAgent
 
 	// OnLobbyDataChanged is called whenever there is a change in the lobby data.
 	//
@@ -46,7 +36,7 @@ type IAgent interface {
 	// Default Behavior:
 	// By default, this method performs no action. To add custom behavior
 	// when the lobby state changes, override this method in your implementation.
-	OnLobbyDataChanged(lobbyData LobbyData)
+	OnLobbyDataChanged(lobbyData *lobby_data.LobbyData)
 
 	// NextMove is called after each game tick, when new game state data is received from the server.
 	// This method is responsible for determining the agent's next move based on the current game state.
@@ -57,7 +47,7 @@ type IAgent interface {
 	//
 	// Returns:
 	// - AgentResponse: The action or decision made by the agent, which will be communicated back to the game server.
-	NextMove(gameState GameState) AgentResponse
+	NextMove(gameState *game_state.GameState) agent_response.AgentResponse
 
 	// OnGameEnded is called when the game has concluded, providing the final game results.
 	//
@@ -72,5 +62,5 @@ type IAgent interface {
 	//
 	// Notes:
 	// - This method is optional to override, but it can be useful for handling game result analysis and logging.
-	OnGameEnded(gameEnd GameEnd)
+	OnGameEnded(gameEnd *game_end.GameEnd)
 }

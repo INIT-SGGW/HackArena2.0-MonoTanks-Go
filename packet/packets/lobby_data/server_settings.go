@@ -1,9 +1,5 @@
 package lobby_data
 
-import (
-	"encoding/json"
-)
-
 // ServerSettings represents the configuration settings for the server.
 type ServerSettings struct {
 	// GridDimension is the dimensions of the grid. The grid is a square with sides of equal length.
@@ -23,24 +19,4 @@ type ServerSettings struct {
 	// immediately after all players have made their action (true)
 	// or at regular intervals (false).
 	EagerBroadcast bool `json:"eagerBroadcast"`
-}
-
-// NewServerSettings is a constructor for ServerSettings.
-func NewServerSettings(gridDimension, numberOfPlayers, seed, broadcastInterval uint32, eagerBroadcast bool) *ServerSettings {
-	return &ServerSettings{
-		GridDimension:     gridDimension,
-		NumberOfPlayers:   numberOfPlayers,
-		Seed:              seed,
-		BroadcastInterval: broadcastInterval,
-		EagerBroadcast:    eagerBroadcast,
-	}
-}
-
-// String returns the JSON representation of the ServerSettings.
-func (ss *ServerSettings) String() string {
-	data, err := json.Marshal(ss)
-	if err != nil {
-		return "Error: " + err.Error()
-	}
-	return string(data)
 }
