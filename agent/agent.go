@@ -25,7 +25,6 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 }
 
 func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
-
 	switch r := rand.Float32(); {
 	case r < 0.33:
 		direction := agent_response.Forward
@@ -35,13 +34,13 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 		return agent_response.NewTankMovement(direction)
 	case r < 0.66:
 		randomRotation := func() agent_response.Rotation {
-			switch r := rand.Float32(); {
-			case r < 0.33:
+			switch rand.Intn(3) {
+			case 0:
 				return agent_response.Left
-			case r < 0.66:
+			case 1:
 				return agent_response.Right
 			default:
-				return agent_response.Left // Default case to avoid nil return
+				return agent_response.None
 			}
 		}
 		return agent_response.NewTankRotation(randomRotation(), randomRotation())

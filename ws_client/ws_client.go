@@ -161,10 +161,11 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet, agent *agent.
 		handlers.HandleNextMove(client.tx, &client.agentMutex, agent, gameState)
 	case packet.GameEndPacket:
 		fmt.Println("[System] 🏁 Game ended")
-		if gameEnd, ok := p.Payload.(game_end.GameEnd); ok {
+
+		var gameEnd game_end.GameEnd
+		payloadBytes, _ := json.Marshal(p.Payload)
+		if err := json.Unmarshal(payloadBytes, &gameEnd); err == nil {
 			handlers.HandleGameEnded(&client.agentMutex, agent, gameEnd)
-		} else {
-			log.Printf("[System] 🚨 Invalid game end type")
 		}
 	case packet.PlayerAlreadyMadeActionWarning:
 		fmt.Println("[System] 🚨 Player already made action warning")

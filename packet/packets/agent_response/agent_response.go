@@ -68,29 +68,23 @@ func NewTankShoot() *AgentResponse {
 func (ar *AgentResponse) MarshalJSON() ([]byte, error) {
 	switch ar.Type {
 	case TankMovement:
-		return json.Marshal(&struct {
+		return json.Marshal(struct {
 			Direction *MoveDirection `json:"direction,omitempty"`
-		}{
-			Direction: ar.Direction,
-		})
+		}{ar.Direction})
+
 	case TankRotation:
-		// Handle None as null in the JSON output
-		var tankRotation, turretRotation *Rotation
+		rotations := make(map[string]int)
 		if ar.TankRotation != None {
-			tankRotation = &ar.TankRotation
+			rotations["tankRotation"] = int(ar.TankRotation)
 		}
 		if ar.TurretRotation != None {
-			turretRotation = &ar.TurretRotation
+			rotations["turretRotation"] = int(ar.TurretRotation)
 		}
-		return json.Marshal(&struct {
-			TankRotation   *Rotation `json:"tankRotation"`   // If None, will be serialized as null
-			TurretRotation *Rotation `json:"turretRotation"` // If None, will be serialized as null
-		}{
-			TankRotation:   tankRotation,
-			TurretRotation: turretRotation,
-		})
+		return json.Marshal(rotations)
+
 	case TankShoot:
-		return json.Marshal(&struct{}{})
+		return json.Marshal(struct{}{})
+
 	default:
 		return nil, errors.New("invalid response type")
 	}
@@ -98,24 +92,55 @@ func (ar *AgentResponse) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON customizes the JSON deserialization of the AgentResponse type.
 func (ar *AgentResponse) UnmarshalJSON(data []byte) error {
-	type Alias AgentResponse
-	aux := &struct {
-		Type string `json:"type"`
-		*Alias
-	}{
-		Alias: (*Alias)(ar),
-	}
-	if err := json.Unmarshal(data, &aux); err != nil {
+	var temp map[string]json.RawMessage
+	if err := json.Unmarshal(data, &temp); err != nil {
 		return err
 	}
-	ar.Type = ResponseType(aux.Type)
 
-	switch ar.Type {
-	case TankMovement, TankRotation, TankShoot:
+	switch {
+	case hasKey(temp, "direction"):
+		return ar.unmarshalTankMovement(temp)
+	case hasKey(temp, "tankRotation") || hasKey(temp, "turretRotation"):
+		return ar.unmarshalTankRotation(temp)
+	case len(temp) == 0:
+		ar.Type = TankShoot
 		return nil
 	default:
 		return errors.New("invalid response type")
 	}
+}
+
+func (ar *AgentResponse) unmarshalTankMovement(temp map[string]json.RawMessage) error {
+	ar.Type = TankMovement
+	var direction MoveDirection
+	if err := json.Unmarshal(temp["direction"], &direction); err != nil {
+		return err
+	}
+	ar.Direction = &direction
+	return nil
+}
+
+func (ar *AgentResponse) unmarshalTankRotation(temp map[string]json.RawMessage) error {
+	ar.Type = TankRotation
+	ar.TankRotation = None
+	ar.TurretRotation = None
+
+	if tankRotation, ok := temp["tankRotation"]; ok {
+		if err := json.Unmarshal(tankRotation, &ar.TankRotation); err != nil {
+			return err
+		}
+	}
+	if turretRotation, ok := temp["turretRotation"]; ok {
+		if err := json.Unmarshal(turretRotation, &ar.TurretRotation); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func hasKey(m map[string]json.RawMessage, key string) bool {
+	_, ok := m[key]
+	return ok
 }
 
 func (ar AgentResponse) ToPacket(gameStateID string) packet.Packet {
@@ -129,13 +154,18 @@ func (ar AgentResponse) ToPacket(gameStateID string) packet.Packet {
 			},
 		}
 	case TankRotation:
+		payload := map[string]interface{}{
+			"gameStateId": gameStateID,
+		}
+		if ar.TankRotation != None {
+			payload["tankRotation"] = ar.TankRotation
+		}
+		if ar.TurretRotation != None {
+			payload["turretRotation"] = ar.TurretRotation
+		}
 		return packet.Packet{
-			Type: packet.TankRotationPacket,
-			Payload: map[string]interface{}{
-				"gameStateId":    gameStateID,
-				"tankRotation":   ar.TankRotation,
-				"turretRotation": ar.TurretRotation,
-			},
+			Type:    packet.TankRotationPacket,
+			Payload: payload,
 		}
 	case TankShoot:
 		return packet.Packet{
