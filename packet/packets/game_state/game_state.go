@@ -62,10 +62,10 @@ type Turret struct {
 // Tank represents a tank in the game.
 type Tank struct {
 	// The x-coordinate of the tank.
-	x int
+	X int
 
 	// The y-coordinate of the tank.
-	y int
+	Y int
 
 	// The direction the tank is facing.
 	Direction int
@@ -83,10 +83,10 @@ type Tank struct {
 // Wall represents a wall in the game.
 type Wall struct {
 	// The x-coordinate of the wall.
-	x int
+	X int
 
 	// The y-coordinate of the wall.
-	y int
+	Y int
 }
 
 // RawBullet represents the raw JSON structure of a bullet.
@@ -104,10 +104,10 @@ type RawBullet struct {
 // Bullet represents a bullet in the game.
 type Bullet struct {
 	// The x-coordinate of the bullet.
-	x int
+	X int
 
 	// The y-coordinate of the bullet.
-	y int
+	Y int
 
 	// The direction the bullet is traveling. 0 means up, 1 means right, 2 means down and 3 means left. Other values are not allowed.
 	Direction int
@@ -271,7 +271,7 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 
 				switch tileType.Type {
 				case "wall":
-					gameState.Walls = append(gameState.Walls, Wall{x: x, y: y})
+					gameState.Walls = append(gameState.Walls, Wall{X: x, Y: y})
 				case "tank":
 					var rawTank struct {
 						// The payload containing the raw tank data.
@@ -281,8 +281,8 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 						return err
 					}
 					tank := Tank{
-						x:         x,
-						y:         y,
+						X:         x,
+						Y:         y,
 						Direction: rawTank.Payload.Direction,
 						Health:    rawTank.Payload.Health,
 						OwnerID:   rawTank.Payload.OwnerID,
@@ -298,8 +298,8 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 						return err
 					}
 					bullet := Bullet{
-						x:         x,
-						y:         y,
+						X:         x,
+						Y:         y,
 						Direction: rawBullet.Payload.Direction,
 						ID:        rawBullet.Payload.ID,
 						Speed:     rawBullet.Payload.Speed,

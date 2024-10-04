@@ -23,6 +23,7 @@ type WebSocketClient struct {
 	conn       *websocket.Conn
 	tx         chan []byte
 	agentMutex sync.Mutex
+	agent      *agent.Agent
 }
 
 func NewWebSocketClient() *WebSocketClient {
@@ -45,9 +46,8 @@ func (client *WebSocketClient) Connect(host string, port int, code string, nickn
 
 	client.conn = conn
 
-	agent := &agent.Agent{}
 	client.readTask.Add(1)
-	go client.createReaderTask(agent)
+	go client.createReaderTask()
 
 	client.writeTask.Add(1)
 	go client.createWriterTask()
@@ -104,7 +104,7 @@ func (client *WebSocketClient) createWriterTask() {
 	}
 }
 
-func (client *WebSocketClient) createReaderTask(agent *agent.Agent) {
+func (client *WebSocketClient) createReaderTask() {
 	defer client.readTask.Done()
 	for {
 		_, message, err := client.conn.ReadMessage()
@@ -116,11 +116,11 @@ func (client *WebSocketClient) createReaderTask(agent *agent.Agent) {
 			}
 			return
 		}
-		go client.processMessage(message, agent)
+		go client.processMessage(message)
 	}
 }
 
-func (client *WebSocketClient) processMessage(message []byte, agent *agent.Agent) {
+func (client *WebSocketClient) processMessage(message []byte) {
 
 	var p packet.Packet
 	if err := json.Unmarshal(message, &p); err != nil {
@@ -135,11 +135,11 @@ func (client *WebSocketClient) processMessage(message []byte, agent *agent.Agent
 	case packet.Pong:
 		fmt.Println("[System] 🏓 Received Pong")
 	default:
-		client.processTextMessage(p, agent)
+		client.processTextMessage(p)
 	}
 }
 
-func (client *WebSocketClient) processTextMessage(p packet.Packet, agent *agent.Agent) {
+func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 	switch p.Type {
 	case packet.ConnectionAccepted:
 		fmt.Println("[System] 🎉 Connection accepted")
@@ -158,7 +158,13 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet, agent *agent.
 			log.Printf("[System] 🚨 Error unmarshalling payload into LobbyData: %v", err)
 			return
 		}
-		handlers.HandlePrepareToGame(&client.agentMutex, &agent, &lobbyData)
+
+		client.agentMutex.Lock()
+		err = handlers.HandlePrepareToGame(&client.agent, &lobbyData)
+		client.agentMutex.Unlock()
+		if err != nil {
+			log.Printf("[System] 🚨 Error handling prepare to game: %v", err)
+		}
 	case packet.LobbyDeleted:
 		fmt.Println("[System] 🚪 Lobby deleted")
 	case packet.GameStart:
@@ -177,7 +183,14 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet, agent *agent.
 			return
 		}
 
-		handlers.HandleNextMove(client.tx, &client.agentMutex, agent, gameState)
+		client.agentMutex.Lock()
+		if client.agent != nil {
+			handlers.HandleNextMove(client.tx, client.agent, gameState)
+		} else {
+			log.Println("[System] 🚨 Received GameStatePacket but agent is not initialized")
+		}
+		client.agentMutex.Unlock()
+
 	case packet.GameEndPacket:
 		fmt.Println("[System] 🏁 Game ended")
 
@@ -187,7 +200,14 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet, agent *agent.
 			log.Printf("[System] 🚨 Error unmarshalling GameEnd payload: %v", err)
 			return
 		}
-		handlers.HandleGameEnded(&client.agentMutex, agent, gameEnd)
+
+		client.agentMutex.Lock()
+		err := handlers.HandleGameEnded(client.agent, gameEnd)
+		client.agentMutex.Unlock()
+		if err != nil {
+			log.Printf("[System] 🚨 Error handling game ended: %v", err)
+		}
+
 	case packet.PlayerAlreadyMadeActionWarning:
 		fmt.Println("[System] 🚨 Player already made action warning")
 	case packet.MissingGameStateIdWarning:

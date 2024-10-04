@@ -188,19 +188,19 @@ func TestUnmarshalJSON(t *testing.T) {
 					},
 				},
 				Walls: []Wall{
-					{x: 0, y: 2},
-					{x: 1, y: 5},
-					{x: 2, y: 4},
-					{x: 3, y: 0},
-					{x: 4, y: 3},
-					{x: 5, y: 3},
-					{x: 6, y: 3},
-					{x: 6, y: 6},
+					{X: 0, Y: 2},
+					{X: 1, Y: 5},
+					{X: 2, Y: 4},
+					{X: 3, Y: 0},
+					{X: 4, Y: 3},
+					{X: 5, Y: 3},
+					{X: 6, Y: 3},
+					{X: 6, Y: 6},
 				},
 				Tanks: []Tank{
 					{
-						x:         2,
-						y:         1,
+						X:         2,
+						Y:         1,
 						Direction: 0,
 						Health:    intPtr(100),
 						OwnerID:   "e21b7b97-0451-4800-b1ba-0e5cfc983aa3",
@@ -282,8 +282,8 @@ func TestUnmarshalJSON(t *testing.T) {
 			}
 
 			for i, wall := range gameState.Walls {
-				if wall.x != tt.expected.Walls[i].x || wall.y != tt.expected.Walls[i].y {
-					t.Errorf("expected Wall = (%v, %v), got (%v, %v)", tt.expected.Walls[i].x, tt.expected.Walls[i].y, wall.x, wall.y)
+				if wall.X != tt.expected.Walls[i].X || wall.Y != tt.expected.Walls[i].Y {
+					t.Errorf("expected Wall = (%v, %v), got (%v, %v)", tt.expected.Walls[i].X, tt.expected.Walls[i].Y, wall.X, wall.Y)
 				}
 			}
 
@@ -292,8 +292,8 @@ func TestUnmarshalJSON(t *testing.T) {
 			}
 
 			for i, tank := range gameState.Tanks {
-				if tank.x != tt.expected.Tanks[i].x || tank.y != tt.expected.Tanks[i].y {
-					t.Errorf("expected Tank = (%v, %v), got (%v, %v)", tt.expected.Tanks[i].x, tt.expected.Tanks[i].y, tank.x, tank.y)
+				if tank.X != tt.expected.Tanks[i].X || tank.Y != tt.expected.Tanks[i].Y {
+					t.Errorf("expected Tank = (%v, %v), got (%v, %v)", tt.expected.Tanks[i].X, tt.expected.Tanks[i].Y, tank.X, tank.Y)
 				}
 				if tank.Direction != tt.expected.Tanks[i].Direction {
 					t.Errorf("expected Tank Direction = %v, got %v", tt.expected.Tanks[i].Direction, tank.Direction)
