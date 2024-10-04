@@ -8,10 +8,20 @@ import (
 
 // AgentResponse represents the various responses an agent can have in the system.
 type AgentResponse struct {
-	Type           ResponseType   `json:"-"`
-	Direction      *MoveDirection `json:"direction,omitempty"`
-	TankRotation   Rotation       `json:"tankRotation,omitempty"`
-	TurretRotation Rotation       `json:"turretRotation,omitempty"`
+	// Type represents the kind of response (e.g., TankMovement, TankRotation, TankShoot)
+	Type ResponseType `json:"-"`
+
+	// Direction indicates the movement direction of the tank
+	// 0 for forward, 1 for backward, nil if not applicable
+	Direction int `json:"direction,omitempty"`
+
+	// TankRotation specifies the rotation of the tank body
+	// -1: no rotation, 0: rotate left, 1: rotate right
+	TankRotation int `json:"tankRotation,omitempty"`
+
+	// TurretRotation specifies the rotation of the tank's turret
+	// -1: no rotation, 0: rotate left, 1: rotate right
+	TurretRotation int `json:"turretRotation,omitempty"`
 }
 
 // ResponseType is an enumeration of the types of responses an agent can have.
@@ -23,33 +33,22 @@ const (
 	TankShoot    ResponseType = "tankShoot"
 )
 
-// Rotation represents the rotation data for a tank or turret.
-type Rotation int
-
-const (
-	None  Rotation = -1 // `None` represents no rotation
-	Left  Rotation = 0  // Preserve `Left` as 0
-	Right Rotation = 1  // Preserve `Right` as 1
-)
-
-// MoveDirection represents the direction of movement.
-type MoveDirection int
-
-const (
-	Forward MoveDirection = iota
-	Backward
-)
-
 // NewTankMovement creates a new AgentResponse for tank movement.
-func NewTankMovement(direction MoveDirection) *AgentResponse {
+// direction: 0 for forward, 1 for backward
+func NewTankMovement(direction int) *AgentResponse {
 	return &AgentResponse{
 		Type:      TankMovement,
-		Direction: &direction,
+		Direction: direction,
 	}
 }
 
 // NewTankRotation creates a new AgentResponse for tank rotation.
-func NewTankRotation(tankRotation, turretRotation Rotation) *AgentResponse {
+// Both tankRotation and turretRotation use the following values:
+// -1: no rotation
+//
+//	0: rotate left
+//	1: rotate right
+func NewTankRotation(tankRotation, turretRotation int) *AgentResponse {
 	return &AgentResponse{
 		Type:           TankRotation,
 		TankRotation:   tankRotation,
@@ -69,16 +68,16 @@ func (ar *AgentResponse) MarshalJSON() ([]byte, error) {
 	switch ar.Type {
 	case TankMovement:
 		return json.Marshal(struct {
-			Direction *MoveDirection `json:"direction,omitempty"`
+			Direction int `json:"direction"`
 		}{ar.Direction})
 
 	case TankRotation:
 		rotations := make(map[string]int)
-		if ar.TankRotation != None {
-			rotations["tankRotation"] = int(ar.TankRotation)
+		if ar.TankRotation != -1 {
+			rotations["tankRotation"] = ar.TankRotation
 		}
-		if ar.TurretRotation != None {
-			rotations["turretRotation"] = int(ar.TurretRotation)
+		if ar.TurretRotation != -1 {
+			rotations["turretRotation"] = ar.TurretRotation
 		}
 		return json.Marshal(rotations)
 
@@ -112,18 +111,13 @@ func (ar *AgentResponse) UnmarshalJSON(data []byte) error {
 
 func (ar *AgentResponse) unmarshalTankMovement(temp map[string]json.RawMessage) error {
 	ar.Type = TankMovement
-	var direction MoveDirection
-	if err := json.Unmarshal(temp["direction"], &direction); err != nil {
-		return err
-	}
-	ar.Direction = &direction
-	return nil
+	return json.Unmarshal(temp["direction"], &ar.Direction)
 }
 
 func (ar *AgentResponse) unmarshalTankRotation(temp map[string]json.RawMessage) error {
 	ar.Type = TankRotation
-	ar.TankRotation = None
-	ar.TurretRotation = None
+	ar.TankRotation = -1
+	ar.TurretRotation = -1
 
 	if tankRotation, ok := temp["tankRotation"]; ok {
 		if err := json.Unmarshal(tankRotation, &ar.TankRotation); err != nil {
@@ -157,10 +151,10 @@ func (ar AgentResponse) ToPacket(gameStateID string) packet.Packet {
 		payload := map[string]interface{}{
 			"gameStateId": gameStateID,
 		}
-		if ar.TankRotation != None {
+		if ar.TankRotation != -1 {
 			payload["tankRotation"] = ar.TankRotation
 		}
-		if ar.TurretRotation != None {
+		if ar.TurretRotation != -1 {
 			payload["turretRotation"] = ar.TurretRotation
 		}
 		return packet.Packet{

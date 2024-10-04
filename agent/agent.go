@@ -10,6 +10,7 @@ import (
 	"hack-arena-2024-h2-go/packet/packets/lobby_data"
 )
 
+// Agent represents an AI player in the game.
 type Agent struct {
 	MyID string
 }
@@ -59,24 +60,25 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
 	switch r := rand.Float32(); {
 	case r < 0.33:
-		direction := agent_response.Forward
-		if rand.Intn(2) == 0 {
-			direction = agent_response.Backward
+		// Move the tank
+		// 0 represents forward movement, 1 represents backward movement
+		direction := 0
+		if rand.Intn(2) == 1 {
+			direction = 1
 		}
 		return agent_response.NewTankMovement(direction)
 	case r < 0.66:
-		randomRotation := func() agent_response.Rotation {
-			switch rand.Intn(3) {
-			case 0:
-				return agent_response.Left
-			case 1:
-				return agent_response.Right
-			default:
-				return agent_response.None
-			}
+		// Rotate the tank and/or turret
+		// For both tank and turret rotation:
+		// -1 represents no rotation
+		//  0 represents left rotation
+		//  1 represents right rotation
+		randomRotation := func() int {
+			return rand.Intn(3) - 1
 		}
 		return agent_response.NewTankRotation(randomRotation(), randomRotation())
 	default:
+		// Shoot
 		return agent_response.NewTankShoot()
 	}
 }

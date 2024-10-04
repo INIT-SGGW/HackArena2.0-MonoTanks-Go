@@ -7,7 +7,6 @@ import (
 
 // GameState represents the current state of the game.
 type GameState struct {
-
 	// A unique identifier for the game state.
 	ID string
 
@@ -33,47 +32,94 @@ type GameState struct {
 	Visibility [][]bool
 }
 
+// RawTank represents the raw JSON structure of a tank.
 type RawTank struct {
-	Direction int    `json:"direction"`
-	Health    *int   `json:"health"`
-	OwnerID   string `json:"ownerId"`
-	Turret    Turret `json:"turret"`
+	// The direction the tank is facing. 0 means up, 1 means right, 2 means down and 3 means left. Other values are not allowed.
+	Direction int `json:"direction"`
+
+	// The health of the tank. It is nil for other players tanks.
+	Health *int `json:"health"`
+
+	// The ID of the player who owns the tank.
+	OwnerID string `json:"ownerId"`
+
+	// The turret of the tank.
+	Turret Turret `json:"turret"`
 }
 
+// Turret represents the turret of a tank.
 type Turret struct {
-	BulletCount        *int `json:"bulletCount"`
+	// The number of bullets the turret has. It is nil for other players tanks.
+	BulletCount *int `json:"bulletCount"`
+
+	// The number of ticks until the turret regenerates a bullet. It is nil for other players tanks.
 	TicksToRegenBullet *int `json:"ticksToRegenBullet"`
-	Direction          int  `json:"direction"`
+
+	// The direction the turret is facing. 0 means up, 1 means right, 2 means down and 3 means left. Other values are not allowed.
+	Direction int `json:"direction"`
 }
 
+// Tank represents a tank in the game.
 type Tank struct {
-	x         int
-	y         int
+	// The x-coordinate of the tank.
+	x int
+
+	// The y-coordinate of the tank.
+	y int
+
+	// The direction the tank is facing.
 	Direction int
-	Health    *int
-	OwnerID   string
-	Turret    Turret
+
+	// The health of the tank. It is nil for other players tanks.
+	Health *int
+
+	// The ID of the player who owns the tank.
+	OwnerID string
+
+	// The turret of the tank.
+	Turret Turret
 }
 
+// Wall represents a wall in the game.
 type Wall struct {
+	// The x-coordinate of the wall.
 	x int
+
+	// The y-coordinate of the wall.
 	y int
 }
 
+// RawBullet represents the raw JSON structure of a bullet.
 type RawBullet struct {
-	Direction int     `json:"direction"`
-	ID        int     `json:"id"`
-	Speed     float64 `json:"speed"`
+	// The direction the bullet is traveling.
+	Direction int `json:"direction"`
+
+	// The unique identifier for the bullet.
+	ID int `json:"id"`
+
+	// The speed of the bullet.
+	Speed float64 `json:"speed"`
 }
 
+// Bullet represents a bullet in the game.
 type Bullet struct {
-	x         int
-	y         int
+	// The x-coordinate of the bullet.
+	x int
+
+	// The y-coordinate of the bullet.
+	y int
+
+	// The direction the bullet is traveling. 0 means up, 1 means right, 2 means down and 3 means left. Other values are not allowed.
 	Direction int
-	ID        int
-	Speed     float64
+
+	// The unique identifier for the bullet.
+	ID int
+
+	// The speed of the bullet.
+	Speed float64
 }
 
+// Player represents a player in the game.
 type Player struct {
 	// A unique identifier for the player.
 	ID string `json:"id"`
@@ -117,11 +163,20 @@ type Zone struct {
 
 // ZoneStatus represents the status of a zone.
 type ZoneStatus struct {
-	Type           string                `json:"type"`
-	BeingCaptured  *BeingCapturedStatus  `json:"beingCaptured,omitempty"`
-	Captured       *CapturedStatus       `json:"captured,omitempty"`
+	// The type of the zone status.
+	Type string `json:"type"`
+
+	// The status of the zone being captured, if applicable.
+	BeingCaptured *BeingCapturedStatus `json:"beingCaptured,omitempty"`
+
+	// The status of the zone being captured, if applicable.
+	Captured *CapturedStatus `json:"captured,omitempty"`
+
+	// The status of the zone being contested, if applicable.
 	BeingContested *BeingContestedStatus `json:"beingContested,omitempty"`
-	BeingRetaken   *BeingRetakenStatus   `json:"beingRetaken,omitempty"`
+
+	// The status of the zone being retaken, if applicable.
+	BeingRetaken *BeingRetakenStatus `json:"beingRetaken,omitempty"`
 }
 
 // BeingCapturedStatus represents the status of a zone being captured.
@@ -157,21 +212,34 @@ type BeingRetakenStatus struct {
 	RetakenByID string `json:"retakenById"`
 }
 
-// Custom struct to unmarshal the JSON data
+// rawGameState is a custom struct to unmarshal the JSON data for the game state.
 type rawGameState struct {
-	ID      string          `json:"id"`
-	Tick    uint64          `json:"tick"`
-	Players []Player        `json:"players"`
-	Map     json.RawMessage `json:"map"`
+	// A unique identifier for the game state.
+	ID string `json:"id"`
+
+	// The current tick of the game.
+	Tick uint64 `json:"tick"`
+
+	// A slice of Player objects representing all the players in the game.
+	Players []Player `json:"players"`
+
+	// The raw JSON message for the map data.
+	Map json.RawMessage `json:"map"`
 }
 
-// Custom struct to unmarshal the map data
+// rawMap is a custom struct to unmarshal the map data.
 type rawMap struct {
-	Tiles      [][][]json.RawMessage `json:"tiles"`
-	Zones      []Zone                `json:"zones"`
-	Visibility []string              `json:"visibility"`
+	// A 3D slice representing the tiles in the map.
+	Tiles [][][]json.RawMessage `json:"tiles"`
+
+	// A slice of Zone objects representing different zones in the game.
+	Zones []Zone `json:"zones"`
+
+	// A slice of strings representing the visibility map.
+	Visibility []string `json:"visibility"`
 }
 
+// UnmarshalJSON custom unmarshals the JSON data into a GameState object.
 func (gameState *GameState) UnmarshalJSON(data []byte) error {
 	var raw rawGameState
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -179,7 +247,6 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 	}
 
 	gameState.ID = raw.ID
-
 	gameState.Tick = raw.Tick
 	gameState.Players = raw.Players
 
@@ -195,6 +262,7 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 		for y, cell := range column {
 			if len(cell) > 0 {
 				var tileType struct {
+					// The type of the tile.
 					Type string `json:"type"`
 				}
 				if err := json.Unmarshal(cell[0], &tileType); err != nil {
@@ -206,6 +274,7 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 					gameState.Walls = append(gameState.Walls, Wall{x: x, y: y})
 				case "tank":
 					var rawTank struct {
+						// The payload containing the raw tank data.
 						Payload RawTank `json:"payload"`
 					}
 					if err := json.Unmarshal(cell[0], &rawTank); err != nil {
@@ -222,6 +291,7 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 					gameState.Tanks = append(gameState.Tanks, tank)
 				case "bullet":
 					var rawBullet struct {
+						// The payload containing the raw bullet data.
 						Payload RawBullet `json:"payload"`
 					}
 					if err := json.Unmarshal(cell[0], &rawBullet); err != nil {

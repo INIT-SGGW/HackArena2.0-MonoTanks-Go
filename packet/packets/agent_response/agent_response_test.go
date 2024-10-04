@@ -16,21 +16,21 @@ func TestAgentResponseSerialization(t *testing.T) {
 	}{
 		{
 			name:         "TankMovement Forward",
-			response:     NewTankMovement(Forward),
+			response:     NewTankMovement(0),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"tankMovement","payload":{"direction":0,"gameStateId":"test-id"}}`,
 			expectedType: packet.TankMovementPacket,
 		},
 		{
 			name:         "TankMovement Backward",
-			response:     NewTankMovement(Backward),
+			response:     NewTankMovement(1),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"tankMovement","payload":{"direction":1,"gameStateId":"test-id"}}`,
 			expectedType: packet.TankMovementPacket,
 		},
 		{
 			name:         "TankRotation Left Right",
-			response:     NewTankRotation(Left, Right),
+			response:     NewTankRotation(0, 1),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"tankRotation","payload":{"gameStateId":"test-id","tankRotation":0,"turretRotation":1}}`,
 			expectedType: packet.TankRotationPacket,
@@ -44,21 +44,21 @@ func TestAgentResponseSerialization(t *testing.T) {
 		},
 		{
 			name:         "TankRotation Left None",
-			response:     NewTankRotation(Left, None),
+			response:     NewTankRotation(0, -1),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"tankRotation","payload":{"gameStateId":"test-id","tankRotation":0}}`,
 			expectedType: packet.TankRotationPacket,
 		},
 		{
 			name:         "TankRotation None Right",
-			response:     NewTankRotation(None, Right),
+			response:     NewTankRotation(-1, 1),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"tankRotation","payload":{"gameStateId":"test-id","turretRotation":1}}`,
 			expectedType: packet.TankRotationPacket,
 		},
 		{
 			name:         "TankRotation None None",
-			response:     NewTankRotation(None, None),
+			response:     NewTankRotation(-1, -1),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"tankRotation","payload":{"gameStateId":"test-id"}}`,
 			expectedType: packet.TankRotationPacket,
@@ -67,21 +67,18 @@ func TestAgentResponseSerialization(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Convert AgentResponse to Packet
+
 			pkt := tt.response.ToPacket(tt.gameStateID)
 
-			// Check packet type
 			if pkt.Type != tt.expectedType {
 				t.Errorf("Expected packet type %v, got %v", tt.expectedType, pkt.Type)
 			}
 
-			// Serialize the packet
 			data, err := json.Marshal(pkt)
 			if err != nil {
 				t.Fatalf("Failed to marshal packet: %v", err)
 			}
 
-			// Compare serialized JSON with expected JSON
 			if string(data) != tt.expectedJSON {
 				t.Errorf("Expected JSON:\n%s\nGot:\n%s", tt.expectedJSON, string(data))
 			}
