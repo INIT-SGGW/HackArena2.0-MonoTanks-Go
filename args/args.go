@@ -1,6 +1,8 @@
 package args
 
 import (
+	"fmt"
+
 	"github.com/urfave/cli/v2"
 )
 
@@ -12,16 +14,15 @@ type Args struct {
 }
 
 func NewCLIApp() *cli.App {
-	args := &Args{} // Create a pointer to Args
+	args := &Args{}
 
 	return &cli.App{
-		Name:    "agent",
-		Usage:   "Configure the agent and connect to a server",
-		Version: "1.0.0",
+		Name:    "hackathon_2024_h2_go_client",
+		Usage:   "Go client written for Hackathon 2024 H2 organized by KN inIT. The client is used to communicate with the server using WebSocket protocol. Your task is to implement bot logic. Each time the game state updates on the server, it is sent to you and you have to respond with your move. The game is played on a 2D grid. The game is turn-based. The player with the most points at the end of the game wins. Let the best bot win!",
+		Version: "0.1.0",
 		Authors: []*cli.Author{
 			{
-				Name:  "Author Name",
-				Email: "author@example.com",
+				Name: "KN inIT",
 			},
 		},
 		Flags: []cli.Flag{
@@ -41,7 +42,7 @@ func NewCLIApp() *cli.App {
 			&cli.UintFlag{
 				Name:        "port",
 				Aliases:     []string{"p"},
-				Usage:       "The port on which the server is listening",
+				Usage:       "The port on which the server is listening (1-65535)",
 				Value:       5000,
 				Destination: &args.Port,
 			},
@@ -54,7 +55,12 @@ func NewCLIApp() *cli.App {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			// Store the args in the app's metadata
+			// Validate the port number
+			if args.Port < 1 || args.Port > 65535 {
+				return fmt.Errorf("port must be between 1 and 65535")
+			}
+
+			// Set the metadata for the application
 			c.App.Metadata = map[string]interface{}{
 				"args": args,
 			}
@@ -63,6 +69,7 @@ func NewCLIApp() *cli.App {
 	}
 }
 
+// GetArgs returns the current instance of Args
 func (a *Args) GetArgs() *Args {
 	return a
 }

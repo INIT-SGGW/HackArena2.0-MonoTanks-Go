@@ -60,7 +60,10 @@ func (client *WebSocketClient) Run(ctx context.Context) error {
 	close(client.tx)
 	client.readTask.Wait()
 	client.writeTask.Wait()
-	return client.conn.Close()
+	if err := client.conn.Close(); err != nil {
+		return fmt.Errorf("error closing WebSocket connection: %w", err)
+	}
+	return nil
 }
 
 func (client *WebSocketClient) constructURL(host string, port int, code string, nickname string) string {
@@ -164,9 +167,11 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet, agent *agent.
 
 		var gameEnd game_end.GameEnd
 		payloadBytes, _ := json.Marshal(p.Payload)
-		if err := json.Unmarshal(payloadBytes, &gameEnd); err == nil {
-			handlers.HandleGameEnded(&client.agentMutex, agent, gameEnd)
+		if err := json.Unmarshal(payloadBytes, &gameEnd); err != nil {
+			log.Printf("[System] 🚨 Error unmarshalling GameEnd payload: %v", err)
+			return
 		}
+		handlers.HandleGameEnded(&client.agentMutex, agent, gameEnd)
 	case packet.PlayerAlreadyMadeActionWarning:
 		fmt.Println("[System] 🚨 Player already made action warning")
 	case packet.MissingGameStateIdWarning:

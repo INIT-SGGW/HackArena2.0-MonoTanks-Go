@@ -50,7 +50,7 @@ type Tank struct {
 	x         int
 	y         int
 	Direction int
-	Health    int
+	Health    *int
 	OwnerID   string
 	Turret    Turret
 }
@@ -215,7 +215,7 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 						x:         x,
 						y:         y,
 						Direction: rawTank.Payload.Direction,
-						Health:    *rawTank.Payload.Health,
+						Health:    rawTank.Payload.Health,
 						OwnerID:   rawTank.Payload.OwnerID,
 						Turret:    rawTank.Payload.Turret,
 					}

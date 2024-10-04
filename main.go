@@ -18,24 +18,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Get the parsed arguments
 	parsedArgs, ok := app.Metadata["args"].(*args.Args)
 	if !ok || parsedArgs == nil {
 		log.Fatal("[System] 🌋 Error: Failed to retrieve parsed arguments")
 	}
 
 	fmt.Println("[System] 🚀 Starting client...")
+	if err := startWebSocketClient(parsedArgs); err != nil {
+		log.Fatalf("[System] 🌋 Error: %v", err)
+	}
+}
+
+func startWebSocketClient(parsedArgs *args.Args) error {
 	websocketClient := ws_client.NewWebSocketClient()
-	err = websocketClient.Connect(parsedArgs.Host, int(parsedArgs.Port), parsedArgs.Code, parsedArgs.Nickname)
+	err := websocketClient.Connect(parsedArgs.Host, int(parsedArgs.Port), parsedArgs.Code, parsedArgs.Nickname)
 	if err != nil {
-		log.Fatalf("[System] 🌋 Error connecting to the server -> %v", err)
+		return fmt.Errorf("connecting to the server: %w", err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err = websocketClient.Run(ctx)
-	if err != nil {
-		log.Fatalf("[System] 🌋 Error running WebSocket client -> %v", err)
+	if err := websocketClient.Run(ctx); err != nil {
+		return fmt.Errorf("running WebSocket client: %w", err)
 	}
+	return nil
 }

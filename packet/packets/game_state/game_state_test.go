@@ -202,7 +202,7 @@ func TestUnmarshalJSON(t *testing.T) {
 						x:         2,
 						y:         1,
 						Direction: 0,
-						Health:    100,
+						Health:    intPtr(100),
 						OwnerID:   "e21b7b97-0451-4800-b1ba-0e5cfc983aa3",
 						Turret: Turret{
 							Direction:          1,
@@ -298,7 +298,9 @@ func TestUnmarshalJSON(t *testing.T) {
 				if tank.Direction != tt.expected.Tanks[i].Direction {
 					t.Errorf("expected Tank Direction = %v, got %v", tt.expected.Tanks[i].Direction, tank.Direction)
 				}
-				if tank.Health != tt.expected.Tanks[i].Health {
+				if (tank.Health == nil && tt.expected.Tanks[i].Health != nil) ||
+					(tank.Health != nil && tt.expected.Tanks[i].Health == nil) ||
+					(tank.Health != nil && tt.expected.Tanks[i].Health != nil && *tank.Health != *tt.expected.Tanks[i].Health) {
 					t.Errorf("expected Tank Health = %v, got %v", tt.expected.Tanks[i].Health, tank.Health)
 				}
 				if tank.OwnerID != tt.expected.Tanks[i].OwnerID {
@@ -307,11 +309,15 @@ func TestUnmarshalJSON(t *testing.T) {
 				if tank.Turret.Direction != tt.expected.Tanks[i].Turret.Direction {
 					t.Errorf("expected Tank Turret Direction = %v, got %v", tt.expected.Tanks[i].Turret.Direction, tank.Turret.Direction)
 				}
-				if tank.Turret.BulletCount != nil && tt.expected.Tanks[i].Turret.BulletCount != nil && *tank.Turret.BulletCount != *tt.expected.Tanks[i].Turret.BulletCount {
-					t.Errorf("expected Tank Turret BulletCount = %v, got %v", *tt.expected.Tanks[i].Turret.BulletCount, *tank.Turret.BulletCount)
+				if (tank.Turret.BulletCount == nil && tt.expected.Tanks[i].Turret.BulletCount != nil) ||
+					(tank.Turret.BulletCount != nil && tt.expected.Tanks[i].Turret.BulletCount == nil) ||
+					(tank.Turret.BulletCount != nil && tt.expected.Tanks[i].Turret.BulletCount != nil && *tank.Turret.BulletCount != *tt.expected.Tanks[i].Turret.BulletCount) {
+					t.Errorf("expected Tank Turret BulletCount = %v, got %v", tt.expected.Tanks[i].Turret.BulletCount, tank.Turret.BulletCount)
 				}
-				if tank.Turret.TicksToRegenBullet != nil && tt.expected.Tanks[i].Turret.TicksToRegenBullet != nil && *tank.Turret.TicksToRegenBullet != *tt.expected.Tanks[i].Turret.TicksToRegenBullet {
-					t.Errorf("expected Tank Turret TicksToRegenBullet = %v, got %v", *tt.expected.Tanks[i].Turret.TicksToRegenBullet, *tank.Turret.TicksToRegenBullet)
+				if (tank.Turret.TicksToRegenBullet == nil && tt.expected.Tanks[i].Turret.TicksToRegenBullet != nil) ||
+					(tank.Turret.TicksToRegenBullet != nil && tt.expected.Tanks[i].Turret.TicksToRegenBullet == nil) ||
+					(tank.Turret.TicksToRegenBullet != nil && tt.expected.Tanks[i].Turret.TicksToRegenBullet != nil && *tank.Turret.TicksToRegenBullet != *tt.expected.Tanks[i].Turret.TicksToRegenBullet) {
+					t.Errorf("expected Tank Turret TicksToRegenBullet = %v, got %v", tt.expected.Tanks[i].Turret.TicksToRegenBullet, tank.Turret.TicksToRegenBullet)
 				}
 			}
 
