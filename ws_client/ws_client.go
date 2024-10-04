@@ -56,14 +56,26 @@ func (client *WebSocketClient) Connect(host string, port int, code string, nickn
 }
 
 func (client *WebSocketClient) Run(ctx context.Context) error {
-	<-ctx.Done()
-	close(client.tx)
-	client.readTask.Wait()
-	client.writeTask.Wait()
-	if err := client.conn.Close(); err != nil {
-		return fmt.Errorf("error closing WebSocket connection: %w", err)
+	defer func() {
+		if err := client.conn.Close(); err != nil {
+			log.Printf("[System] 🚨 Error closing WebSocket connection: %v", err)
+		}
+		fmt.Println("[System] 👋 Connection closed")
+	}()
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		client.readTask.Wait()
+	}()
+
+	select {
+	case <-ctx.Done():
+		log.Println("[System] 🛑 Context cancelled, closing connection...")
+		return client.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	case <-done:
+		return nil
 	}
-	return nil
 }
 
 func (client *WebSocketClient) constructURL(host string, port int, code string, nickname string) string {
@@ -97,7 +109,11 @@ func (client *WebSocketClient) createReaderTask(agent *agent.Agent) {
 	for {
 		_, message, err := client.conn.ReadMessage()
 		if err != nil {
-			log.Printf("[System] 🌋 WebSocket receive error -> %v", err)
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("[System] 🌋 WebSocket unexpected close error: %v", err)
+			} else {
+				log.Printf("[System] 👋 WebSocket connection closed: %v", err)
+			}
 			return
 		}
 		go client.processMessage(message, agent)
