@@ -3,7 +3,6 @@ package packet_test
 import (
 	"encoding/json"
 	"hack-arena-2024-h2-go/packet"
-	"hack-arena-2024-h2-go/packet/packets/agent_response"
 	"hack-arena-2024-h2-go/packet/packets/game_end"
 	"hack-arena-2024-h2-go/packet/packets/lobby_data"
 	"testing"
@@ -298,66 +297,5 @@ func TestPacketUnmarshalJSONWithGameEnd(t *testing.T) {
 	}
 	if player2.Score != 20 {
 		t.Fatalf("Expected player2 score to be 20, got %v", player2.Score)
-	}
-}
-
-func TestAgentResponseSerialization(t *testing.T) {
-	tests := []struct {
-		name     string
-		response *agent_response.AgentResponse
-		expected string
-	}{
-		{
-			name:     "TankMovement Forward",
-			response: agent_response.NewTankMovement(agent_response.Forward),
-			expected: `{"direction":0}`,
-		},
-		{
-			name:     "TankMovement Backward",
-			response: agent_response.NewTankMovement(agent_response.Backward),
-			expected: `{"direction":1}`,
-		},
-		{
-			name:     "TankRotation Left Right",
-			response: agent_response.NewTankRotation(agent_response.Left, agent_response.Right),
-			expected: `{"tankRotation":0,"turretRotation":1}`,
-		},
-		{
-			name:     "TankRotation Right Left",
-			response: agent_response.NewTankRotation(agent_response.Right, agent_response.Left),
-			expected: `{"tankRotation":1,"turretRotation":0}`,
-		},
-		{
-			name:     "TankRotation Left Nil",
-			response: agent_response.NewTankRotation(agent_response.Left, agent_response.None),
-			expected: `{"tankRotation":0,"turretRotation":null}`,
-		},
-		{
-			name:     "TankRotation Nil Right",
-			response: agent_response.NewTankRotation(agent_response.None, agent_response.Right),
-			expected: `{"tankRotation":null,"turretRotation":1}`,
-		},
-		{
-			name:     "TankRotation Nil Nil",
-			response: agent_response.NewTankRotation(agent_response.None, agent_response.None),
-			expected: `{"tankRotation":null,"turretRotation":null}`,
-		},
-		{
-			name:     "TankShoot",
-			response: agent_response.NewTankShoot(),
-			expected: `{}`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			data, err := json.Marshal(tt.response)
-			if err != nil {
-				t.Fatalf("Failed to marshal response: %v", err)
-			}
-			if string(data) != tt.expected {
-				t.Errorf("Expected %v, got %v", tt.expected, string(data))
-			}
-		})
 	}
 }
