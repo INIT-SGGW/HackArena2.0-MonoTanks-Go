@@ -64,7 +64,7 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 // - AgentResponse: The action or decision made by the agent, which will be communicated back to the game server.
 func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
 	switch r := rand.Float32(); {
-	case r < 0.33:
+	case r < 0.25:
 		// Move the tank
 		// 0 represents forward movement, 1 represents backward movement
 		direction := 0
@@ -72,7 +72,7 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 			direction = 1
 		}
 		return agent_response.NewTankMovement(direction)
-	case r < 0.66:
+	case r < 0.50:
 		// Rotate the tank and/or turret
 		// For both tank and turret rotation:
 		// -1 represents no rotation
@@ -82,9 +82,12 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 			return rand.Intn(3) - 1
 		}
 		return agent_response.NewTankRotation(randomRotation(), randomRotation())
-	default:
+	case r < 0.75:
 		// Shoot
 		return agent_response.NewTankShoot()
+	default:
+		// Pass
+		return agent_response.NewResponsePass()
 	}
 }
 
