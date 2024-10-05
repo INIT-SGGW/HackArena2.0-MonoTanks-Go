@@ -214,6 +214,8 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 		fmt.Println("[System] 🚨 Missing game state id warning")
 	case packet.SlowResponseWarning:
 		fmt.Println("[System] 🚨 Slow response warning")
+	case packet.ActionIgnoredDueToDeadWarning:
+		fmt.Println("[System] 🚨 Action ignored due to dead warning")
 	case packet.InvalidPacketTypeError:
 		fmt.Println("[System] 🚨 Client sent an invalid packet type error")
 	case packet.InvalidPacketUsageError:

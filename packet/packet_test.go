@@ -54,6 +54,10 @@ func TestPacketUnmarshalJSON(t *testing.T) {
 			expected: packet.SlowResponseWarning,
 		},
 		{
+			input:    `{"type": "actionIgnoredDueToDeadWarning"}`,
+			expected: packet.ActionIgnoredDueToDeadWarning,
+		},
+		{
 			input:    `{"type": "invalidPacketTypeError"}`,
 			expected: packet.InvalidPacketTypeError,
 		},

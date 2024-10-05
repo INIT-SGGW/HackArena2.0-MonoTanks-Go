@@ -24,6 +24,7 @@ const (
 	SlowResponseWarning            PacketType = "slowResponseWarning"
 	InvalidPacketTypeError         PacketType = "invalidPacketTypeError"
 	InvalidPacketUsageError        PacketType = "invalidPacketUsageError"
+	ActionIgnoredDueToDeadWarning  PacketType = "actionIgnoredDueToDeadWarning"
 )
 
 type Packet struct {
