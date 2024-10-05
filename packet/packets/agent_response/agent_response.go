@@ -31,6 +31,7 @@ const (
 	TankMovement ResponseType = "tankMovement"
 	TankRotation ResponseType = "tankRotation"
 	TankShoot    ResponseType = "tankShoot"
+	ResponsePass ResponseType = "responsePass"
 )
 
 // NewTankMovement creates a new AgentResponse for tank movement.
@@ -63,6 +64,13 @@ func NewTankShoot() *AgentResponse {
 	}
 }
 
+// NewResponsePass creates a new AgentResponse for response pass.
+func NewResponsePass() *AgentResponse {
+	return &AgentResponse{
+		Type: ResponsePass,
+	}
+}
+
 // MarshalJSON customizes the JSON representation of the AgentResponse type.
 func (ar *AgentResponse) MarshalJSON() ([]byte, error) {
 	switch ar.Type {
@@ -84,6 +92,9 @@ func (ar *AgentResponse) MarshalJSON() ([]byte, error) {
 	case TankShoot:
 		return json.Marshal(struct{}{})
 
+	case ResponsePass:
+		return json.Marshal(struct{}{})
+
 	default:
 		return nil, errors.New("invalid response type")
 	}
@@ -102,7 +113,7 @@ func (ar *AgentResponse) UnmarshalJSON(data []byte) error {
 	case hasKey(temp, "tankRotation") || hasKey(temp, "turretRotation"):
 		return ar.unmarshalTankRotation(temp)
 	case len(temp) == 0:
-		ar.Type = TankShoot
+		ar.Type = ResponsePass
 		return nil
 	default:
 		return errors.New("invalid response type")
@@ -164,6 +175,13 @@ func (ar AgentResponse) ToPacket(gameStateID string) packet.Packet {
 	case TankShoot:
 		return packet.Packet{
 			Type: packet.TankShootPacket,
+			Payload: map[string]interface{}{
+				"gameStateId": gameStateID,
+			},
+		}
+	case ResponsePass:
+		return packet.Packet{
+			Type: packet.ResponsePassPacket,
 			Payload: map[string]interface{}{
 				"gameStateId": gameStateID,
 			},

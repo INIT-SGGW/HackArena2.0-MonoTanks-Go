@@ -25,6 +25,7 @@ const (
 	InvalidPacketTypeError         PacketType = "invalidPacketTypeError"
 	InvalidPacketUsageError        PacketType = "invalidPacketUsageError"
 	ActionIgnoredDueToDeadWarning  PacketType = "actionIgnoredDueToDeadWarning"
+	ResponsePassPacket             PacketType = "responsePass"
 )
 
 type Packet struct {
