@@ -13,4 +13,7 @@ type GameEndPlayer struct {
 
 	// Score is the player's final score in the game.
 	Score uint64 `json:"score"`
+
+	// Kills is the number of kills the player achieved in the game.
+	Kills uint64 `json:"kills"`
 }
