@@ -155,7 +155,7 @@ Assuming the game server is running on `localhost:5000` (refer to the server
 repository's README for setup instructions), start the client by running:
 
 ```sh
-go run main.go --nickname rust
+go run main.go --nickname go
 ```
 
 The `--nickname` argument is required and must be unique. For additional
@@ -168,7 +168,7 @@ go run main.go --help
 To build and run an optimized release version of the client, use:
 
 ```sh
-go run main.go --nickname rust
+go run main.go --nickname go
 ```
 
 ### 2. Running in a VS Code Development Container
@@ -189,6 +189,14 @@ Steps:
 Once the container is running, you can execute all necessary commands in VS
 Code's integrated terminal, as if you were running the project locally.
 
+When you are running the client in a container and the server is running on
+your local machine, use the `--host host.docker.internal` flag to connect the
+Docker container to your local host.
+
+```sh
+go run main.go --nickname go --host host.docker.internal
+```
+
 ### 3. Running in a Docker Container (Manual Setup)
 
 To run the client manually in a Docker container, ensure Docker is installed on
@@ -202,7 +210,7 @@ Steps:
    ```
 2. Run the Docker container:
    ```sh
-   docker run --rm client --nickname rust --host host.docker.internal
+   docker run --rm client --nickname go --host host.docker.internal
    ```
 
 If the server is running on your local machine, use the

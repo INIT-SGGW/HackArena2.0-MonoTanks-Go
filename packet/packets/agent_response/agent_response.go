@@ -12,34 +12,43 @@ type AgentResponse struct {
 	Type ResponseType `json:"-"`
 
 	// Direction indicates the movement direction of the tank
-	// 0 for forward, 1 for backward, nil if not applicable
-	Direction int `json:"direction,omitempty"`
+	// "forward" or "backward", empty if not applicable
+	Direction string `json:"direction,omitempty"`
 
 	// TankRotation specifies the rotation of the tank body
-	// -1: no rotation, 0: rotate left, 1: rotate right
-	TankRotation int `json:"tankRotation,omitempty"`
+	// "left" or "right", empty if not applicable
+	TankRotation string `json:"tankRotation,omitempty"`
 
 	// TurretRotation specifies the rotation of the tank's turret
-	// -1: no rotation, 0: rotate left, 1: rotate right
-	TurretRotation int `json:"turretRotation,omitempty"`
+	// "left" or "right", empty if not applicable
+	TurretRotation string `json:"turretRotation,omitempty"`
 
 	// AbilityType represents the type of ability to use
-	AbilityType int `json:"abilityType,omitempty"`
+	AbilityType string `json:"abilityType,omitempty"`
 }
 
 // ResponseType is an enumeration of the types of responses an agent can have.
 type ResponseType string
 
 const (
-	Movement   ResponseType = "movement"
-	Rotation   ResponseType = "rotation"
-	AbilityUse ResponseType = "abilityUse"
-	Pass       ResponseType = "pass"
+	Movement         ResponseType = "movement"
+	Rotation         ResponseType = "rotation"
+	AbilityUse       ResponseType = "abilityUse"
+	Pass             ResponseType = "pass"
+	FireBullet                    = "fireBullet"
+	UseLaser                      = "useLaser"
+	FireDoubleBullet              = "fireDoubleBullet"
+	UseRadar                      = "useRadar"
+	DropMine                      = "dropMine"
+	Forward                       = "forward"
+	Backward                      = "backward"
+	Left                          = "left"
+	Right                         = "right"
 )
 
 // NewMovement creates a new AgentResponse for tank movement.
-// direction: 0 for forward, 1 for backward
-func NewMovement(direction int) *AgentResponse {
+// direction: "forward" or "backward"
+func NewMovement(direction string) *AgentResponse {
 	return &AgentResponse{
 		Type:      Movement,
 		Direction: direction,
@@ -48,11 +57,8 @@ func NewMovement(direction int) *AgentResponse {
 
 // NewRotation creates a new AgentResponse for tank rotation.
 // Both tankRotation and turretRotation use the following values:
-// -1: no rotation
-//
-//	0: rotate left
-//	1: rotate right
-func NewRotation(tankRotation, turretRotation int) *AgentResponse {
+// "left" or "right", empty if not applicable
+func NewRotation(tankRotation, turretRotation string) *AgentResponse {
 	return &AgentResponse{
 		Type:           Rotation,
 		TankRotation:   tankRotation,
@@ -61,7 +67,7 @@ func NewRotation(tankRotation, turretRotation int) *AgentResponse {
 }
 
 // NewAbilityUse creates a new AgentResponse for ability use.
-func NewAbilityUse(abilityType int) *AgentResponse {
+func NewAbilityUse(abilityType string) *AgentResponse {
 	return &AgentResponse{
 		Type:        AbilityUse,
 		AbilityType: abilityType,
@@ -80,22 +86,22 @@ func (ar *AgentResponse) MarshalJSON() ([]byte, error) {
 	switch ar.Type {
 	case Movement:
 		return json.Marshal(struct {
-			Direction int `json:"direction"`
+			Direction string `json:"direction"`
 		}{ar.Direction})
 
 	case Rotation:
-		rotations := make(map[string]int)
-		if ar.TankRotation != -1 {
+		rotations := make(map[string]string)
+		if ar.TankRotation != "" {
 			rotations["tankRotation"] = ar.TankRotation
 		}
-		if ar.TurretRotation != -1 {
+		if ar.TurretRotation != "" {
 			rotations["turretRotation"] = ar.TurretRotation
 		}
 		return json.Marshal(rotations)
 
 	case AbilityUse:
 		return json.Marshal(struct {
-			AbilityType int `json:"abilityType"`
+			AbilityType string `json:"abilityType"`
 		}{ar.AbilityType})
 
 	case Pass:
@@ -135,9 +141,6 @@ func (ar *AgentResponse) unmarshalMovement(temp map[string]json.RawMessage) erro
 
 func (ar *AgentResponse) unmarshalRotation(temp map[string]json.RawMessage) error {
 	ar.Type = Rotation
-	ar.TankRotation = -1
-	ar.TurretRotation = -1
-
 	if tankRotation, ok := temp["tankRotation"]; ok {
 		if err := json.Unmarshal(tankRotation, &ar.TankRotation); err != nil {
 			return err
@@ -175,10 +178,10 @@ func (ar AgentResponse) ToPacket(gameStateID string) packet.Packet {
 		payload := map[string]interface{}{
 			"gameStateId": gameStateID,
 		}
-		if ar.TankRotation != -1 {
+		if ar.TankRotation != "" {
 			payload["tankRotation"] = ar.TankRotation
 		}
-		if ar.TurretRotation != -1 {
+		if ar.TurretRotation != "" {
 			payload["turretRotation"] = ar.TurretRotation
 		}
 		return packet.Packet{

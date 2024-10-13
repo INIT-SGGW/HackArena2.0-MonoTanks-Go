@@ -43,8 +43,8 @@ type GameState struct {
 
 // RawTank represents the raw JSON structure of a tank.
 type RawTank struct {
-	// The direction the tank is facing. 0 means up, 1 means right, 2 means down and 3 means left. Other values are not allowed.
-	Direction int `json:"direction"`
+	// The direction the tank is facing. "up", "right", "down", or "left".
+	Direction string `json:"direction"`
 
 	// The health of the tank. It is nil for other players tanks.
 	Health *int `json:"health"`
@@ -56,7 +56,8 @@ type RawTank struct {
 	Turret Turret `json:"turret"`
 
 	// The secondary item the tank is carrying. It's nil for other players' tanks.
-	SecondaryItem *int
+	// Can be "laser", "doubleBullet", "radar", or "mine".
+	SecondaryItem *string `json:"secondaryItem,omitempty"`
 }
 
 // Turret represents the turret of a tank.
@@ -67,8 +68,8 @@ type Turret struct {
 	// The number of ticks until the turret regenerates a bullet. It is nil for other players tanks.
 	TicksToRegenBullet *int `json:"ticksToRegenBullet"`
 
-	// The direction the turret is facing. 0 means up, 1 means right, 2 means down and 3 means left. Other values are not allowed.
-	Direction int `json:"direction"`
+	// The direction the turret is facing. "up", "right", "down", or "left".
+	Direction string `json:"direction"`
 }
 
 // Tank represents a tank in the game.
@@ -79,8 +80,8 @@ type Tank struct {
 	// The y-coordinate of the tank.
 	Y int
 
-	// The direction the tank is facing.
-	Direction int
+	// The direction the tank is facing. "up", "right", "down", or "left".
+	Direction string
 
 	// The health of the tank. It is nil for other players tanks.
 	Health *int
@@ -92,7 +93,8 @@ type Tank struct {
 	Turret Turret
 
 	// The secondary item the tank is carrying. It's nil for other players' tanks.
-	SecondaryItem *int
+	// Can be "laser", "doubleBullet", "radar", or "mine".
+	SecondaryItem *string
 }
 
 // Wall represents a wall in the game.
@@ -106,8 +108,8 @@ type Wall struct {
 
 // RawBullet represents the raw JSON structure of a bullet.
 type RawBullet struct {
-	// The direction the bullet is traveling.
-	Direction int `json:"direction"`
+	// The direction the bullet is traveling. "up", "right", "down", or "left".
+	Direction string `json:"direction"`
 
 	// The unique identifier for the bullet.
 	ID int `json:"id"`
@@ -115,7 +117,7 @@ type RawBullet struct {
 	// The speed of the bullet.
 	Speed float64 `json:"speed"`
 
-	// The type of the bullet. Can be "bullet" or "doubleBullet".
+	// The type of the bullet. Can be "basic" or "double".
 	Type string `json:"type"`
 }
 
@@ -127,8 +129,8 @@ type Bullet struct {
 	// The y-coordinate of the bullet.
 	Y int
 
-	// The direction the bullet is traveling. 0 means up, 1 means right, 2 means down and 3 means left. Other values are not allowed.
-	Direction int
+	// The direction the bullet is traveling. "up", "right", "down", or "left".
+	Direction string
 
 	// The unique identifier for the bullet.
 	ID int
@@ -136,7 +138,7 @@ type Bullet struct {
 	// The speed of the bullet.
 	Speed float64
 
-	// The type of the bullet. Can be "bullet" or "doubleBullet".
+	// The type of the bullet. Can be "basic" or "double".
 	Type string
 }
 
@@ -259,8 +261,8 @@ type Laser struct {
 	// The unique identifier for the laser beam.
 	ID int
 
-	// The orientation of the laser. 0 means horizontal, 1 means vertical.
-	Orientation int
+	// The orientation of the laser. "horizontal" or "vertical".
+	Orientation string
 }
 
 // Mine represents a mine on the map.
@@ -391,8 +393,8 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 				case "laser":
 					var rawLaser struct {
 						Payload struct {
-							ID          int `json:"id"`
-							Orientation int `json:"orientation"`
+							ID          int    `json:"id"`
+							Orientation string `json:"orientation"`
 						} `json:"payload"`
 					}
 					if err := json.Unmarshal(cell[0], &rawLaser); err != nil {

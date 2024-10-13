@@ -86,7 +86,7 @@ func (client *WebSocketClient) constructURL(host string, port int, code string, 
 	}
 	q := u.Query()
 	q.Set("nickname", nickname)
-	q.Set("typeOfPacketType", "string")
+	q.Set("enumSerializationFormat", "string")
 	q.Set("playerType", "hackathonBot")
 	if code != "" {
 		q.Set("joinCode", code)

@@ -67,13 +67,14 @@ func TestUnmarshalJSON(t *testing.T) {
                                     "type": "tank",
                                     "payload": {
                                         "ownerId": "e21b7b97-0451-4800-b1ba-0e5cfc983aa3",
-                                        "direction": 0,
+                                        "direction": "up",
                                         "turret": {
-                                            "direction": 1,
+                                            "direction": "right",
                                             "bulletCount": 0,
                                             "ticksToRegenBullet": 1
                                         },
-                                        "health": 100
+                                        "health": 100,
+                                        "secondaryItem": "laser"
                                     }
                                 }
                             ],
@@ -95,7 +96,17 @@ func TestUnmarshalJSON(t *testing.T) {
                             ],
                             [],
                             [],
-                            [],
+                            [
+                                {
+                                    "type": "bullet",
+                                    "payload": {
+                                        "direction": "down",
+                                        "id": 1,
+                                        "speed": 0.5,
+                                        "type": "basic"
+                                    }
+                                }
+                            ],
                             [],
                             [],
                             []
@@ -201,14 +212,25 @@ func TestUnmarshalJSON(t *testing.T) {
 					{
 						X:         2,
 						Y:         1,
-						Direction: 0,
+						Direction: "up",
 						Health:    intPtr(100),
 						OwnerID:   "e21b7b97-0451-4800-b1ba-0e5cfc983aa3",
 						Turret: Turret{
-							Direction:          1,
+							Direction:          "right",
 							BulletCount:        intPtr(0),
 							TicksToRegenBullet: intPtr(1),
 						},
+						SecondaryItem: stringPtr("laser"),
+					},
+				},
+				Bullets: []Bullet{
+					{
+						X:         3,
+						Y:         3,
+						Direction: "down",
+						ID:        1,
+						Speed:     0.5,
+						Type:      "basic",
 					},
 				},
 				Zones: []Zone{
@@ -319,6 +341,35 @@ func TestUnmarshalJSON(t *testing.T) {
 					(tank.Turret.TicksToRegenBullet != nil && tt.expected.Tanks[i].Turret.TicksToRegenBullet != nil && *tank.Turret.TicksToRegenBullet != *tt.expected.Tanks[i].Turret.TicksToRegenBullet) {
 					t.Errorf("expected Tank Turret TicksToRegenBullet = %v, got %v", tt.expected.Tanks[i].Turret.TicksToRegenBullet, tank.Turret.TicksToRegenBullet)
 				}
+				if tank.SecondaryItem != nil && tt.expected.Tanks[i].SecondaryItem != nil {
+					if *tank.SecondaryItem != *tt.expected.Tanks[i].SecondaryItem {
+						t.Errorf("expected Tank SecondaryItem = %v, got %v", *tt.expected.Tanks[i].SecondaryItem, *tank.SecondaryItem)
+					}
+				} else if (tank.SecondaryItem == nil) != (tt.expected.Tanks[i].SecondaryItem == nil) {
+					t.Errorf("expected Tank SecondaryItem = %v, got %v", tt.expected.Tanks[i].SecondaryItem, tank.SecondaryItem)
+				}
+			}
+
+			if len(gameState.Bullets) != len(tt.expected.Bullets) {
+				t.Fatalf("expected %d bullets, got %d", len(tt.expected.Bullets), len(gameState.Bullets))
+			}
+
+			for i, bullet := range gameState.Bullets {
+				if bullet.X != tt.expected.Bullets[i].X || bullet.Y != tt.expected.Bullets[i].Y {
+					t.Errorf("expected Bullet = (%v, %v), got (%v, %v)", tt.expected.Bullets[i].X, tt.expected.Bullets[i].Y, bullet.X, bullet.Y)
+				}
+				if bullet.Direction != tt.expected.Bullets[i].Direction {
+					t.Errorf("expected Bullet Direction = %v, got %v", tt.expected.Bullets[i].Direction, bullet.Direction)
+				}
+				if bullet.ID != tt.expected.Bullets[i].ID {
+					t.Errorf("expected Bullet ID = %v, got %v", tt.expected.Bullets[i].ID, bullet.ID)
+				}
+				if bullet.Speed != tt.expected.Bullets[i].Speed {
+					t.Errorf("expected Bullet Speed = %v, got %v", tt.expected.Bullets[i].Speed, bullet.Speed)
+				}
+				if bullet.Type != tt.expected.Bullets[i].Type {
+					t.Errorf("expected Bullet Type = %v, got %v", tt.expected.Bullets[i].Type, bullet.Type)
+				}
 			}
 
 			if len(gameState.Zones) != len(tt.expected.Zones) {
@@ -375,4 +426,8 @@ func uint64Ptr(i uint64) *uint64 {
 
 func intPtr(i int) *int {
 	return &i
+}
+
+func stringPtr(s string) *string {
+	return &s
 }

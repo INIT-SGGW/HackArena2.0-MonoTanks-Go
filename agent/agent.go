@@ -75,26 +75,34 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 	switch r := rand.Float32(); {
 	case r < 0.25:
 		// Move the tank
-		// 0 represents forward movement, 1 represents backward movement
-		direction := 0
+		direction := agent_response.Forward
 		if rand.Intn(2) == 1 {
-			direction = 1
+			direction = agent_response.Backward
 		}
 		return agent_response.NewMovement(direction)
 	case r < 0.50:
 		// Rotate the tank and/or turret
-		// For both tank and turret rotation:
-		// -1 represents no rotation
-		//  0 represents left rotation
-		//  1 represents right rotation
-		randomRotation := func() int {
-			return rand.Intn(3) - 1
+		randomRotation := func() string {
+			switch rand.Intn(3) {
+			case 0:
+				return agent_response.Left
+			case 1:
+				return agent_response.Right
+			default:
+				return ""
+			}
 		}
 		return agent_response.NewRotation(randomRotation(), randomRotation())
 	case r < 0.75:
-		// Use ability (previously Shoot)
-		// 0: fireBullet, 1: fireDoubleBullet, 2: useLaser, 3: useRadar, 4: dropMine
-		abilityType := rand.Intn(5)
+		// Use ability
+		abilities := []string{
+			agent_response.FireBullet,
+			agent_response.FireDoubleBullet,
+			agent_response.UseLaser,
+			agent_response.UseRadar,
+			agent_response.DropMine,
+		}
+		abilityType := abilities[rand.Intn(len(abilities))]
 		return agent_response.NewAbilityUse(abilityType)
 	default:
 		// Pass
