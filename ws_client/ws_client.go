@@ -180,6 +180,7 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 		err = json.Unmarshal(payloadBytes, &gameState)
 		if err != nil {
 			log.Printf("[System] 🚨 Error unmarshalling payload into GameState: %v", err)
+			log.Printf("[System] 🚨 Text Message -> %s", p.Payload)
 			return
 		}
 

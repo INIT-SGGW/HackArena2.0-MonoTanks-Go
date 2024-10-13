@@ -246,8 +246,8 @@ type Item struct {
 	// The y-coordinate of the item.
 	Y int
 
-	// The type of the item. 1 is doubleBullet, 2 is laser, 3 is radar, 4 is mine.
-	Type int
+	// The type of the item. Can be "unknown", "doubleBullet", "laser", "radar", or "mine".
+	Type string
 }
 
 // Laser represents a laser on the map.
@@ -378,7 +378,7 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 				case "item":
 					var rawItem struct {
 						Payload struct {
-							Type int `json:"type"`
+							Type string `json:"type"`
 						} `json:"payload"`
 					}
 					if err := json.Unmarshal(cell[0], &rawItem); err != nil {

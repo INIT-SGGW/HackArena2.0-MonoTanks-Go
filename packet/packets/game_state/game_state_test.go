@@ -153,6 +153,23 @@ func TestUnmarshalJSON(t *testing.T) {
                                     "type": "wall"
                                 }
                             ]
+                        ],
+                        [
+                            [],
+                            [],
+                            [],
+                            [],
+                            [],
+                            [],
+                            [],
+                            [
+                                {
+                                    "type": "item",
+                                    "payload": {
+                                        "type": "doubleBullet"
+                                    }
+                                }
+                            ]
                         ]
                     ],
                     "zones": [
@@ -257,6 +274,13 @@ func TestUnmarshalJSON(t *testing.T) {
 					{false, false, false, false, false, false, false},
 					{false, false, false, false, false, false, false},
 					{false, false, false, false, false, false, false},
+				},
+				Items: []Item{
+					{
+						X:    7,
+						Y:    7,
+						Type: "doubleBullet",
+					},
 				},
 			},
 		},
@@ -414,6 +438,19 @@ func TestUnmarshalJSON(t *testing.T) {
 					if cell != tt.expected.Visibility[y][x] {
 						t.Errorf("expected Visibility[%d][%d] = %v, got %v", y, x, tt.expected.Visibility[y][x], cell)
 					}
+				}
+			}
+
+			if len(gameState.Items) != len(tt.expected.Items) {
+				t.Fatalf("expected %d items, got %d", len(tt.expected.Items), len(gameState.Items))
+			}
+
+			for i, item := range gameState.Items {
+				if item.X != tt.expected.Items[i].X || item.Y != tt.expected.Items[i].Y {
+					t.Errorf("expected Item = (%v, %v), got (%v, %v)", tt.expected.Items[i].X, tt.expected.Items[i].Y, item.X, item.Y)
+				}
+				if item.Type != tt.expected.Items[i].Type {
+					t.Errorf("expected Item Type = %v, got %v", tt.expected.Items[i].Type, item.Type)
 				}
 			}
 		})

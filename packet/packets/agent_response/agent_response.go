@@ -31,19 +31,10 @@ type AgentResponse struct {
 type ResponseType string
 
 const (
-	Movement         ResponseType = "movement"
-	Rotation         ResponseType = "rotation"
-	AbilityUse       ResponseType = "abilityUse"
-	Pass             ResponseType = "pass"
-	FireBullet                    = "fireBullet"
-	UseLaser                      = "useLaser"
-	FireDoubleBullet              = "fireDoubleBullet"
-	UseRadar                      = "useRadar"
-	DropMine                      = "dropMine"
-	Forward                       = "forward"
-	Backward                      = "backward"
-	Left                          = "left"
-	Right                         = "right"
+	Movement   ResponseType = "movement"
+	Rotation   ResponseType = "rotation"
+	AbilityUse ResponseType = "abilityUse"
+	Pass       ResponseType = "pass"
 )
 
 // NewMovement creates a new AgentResponse for tank movement.

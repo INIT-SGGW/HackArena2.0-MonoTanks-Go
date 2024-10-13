@@ -3,6 +3,9 @@ package agent_response
 import (
 	"encoding/json"
 	"hack-arena-2024-h2-go/packet"
+	"hack-arena-2024-h2-go/packet/packets/agent_response/ability"
+	"hack-arena-2024-h2-go/packet/packets/agent_response/movement"
+	"hack-arena-2024-h2-go/packet/packets/agent_response/rotation"
 	"testing"
 )
 
@@ -16,42 +19,42 @@ func TestAgentResponseSerialization(t *testing.T) {
 	}{
 		{
 			name:         "Movement Forward",
-			response:     NewMovement(Forward),
+			response:     NewMovement(movement.Forward),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"movement","payload":{"direction":"forward","gameStateId":"test-id"}}`,
 			expectedType: packet.MovementPacket,
 		},
 		{
 			name:         "Movement Backward",
-			response:     NewMovement(Backward),
+			response:     NewMovement(movement.Backward),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"movement","payload":{"direction":"backward","gameStateId":"test-id"}}`,
 			expectedType: packet.MovementPacket,
 		},
 		{
 			name:         "Rotation Left Right",
-			response:     NewRotation(Left, Right),
+			response:     NewRotation(rotation.Left, rotation.Right),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"rotation","payload":{"gameStateId":"test-id","tankRotation":"left","turretRotation":"right"}}`,
 			expectedType: packet.RotationPacket,
 		},
 		{
 			name:         "AbilityUse",
-			response:     NewAbilityUse(FireBullet),
+			response:     NewAbilityUse(ability.FireBullet),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"abilityUse","payload":{"abilityType":"fireBullet","gameStateId":"test-id"}}`,
 			expectedType: packet.AbilityUsePacket,
 		},
 		{
 			name:         "Rotation Left None",
-			response:     NewRotation(Left, ""),
+			response:     NewRotation(rotation.Left, ""),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"rotation","payload":{"gameStateId":"test-id","tankRotation":"left"}}`,
 			expectedType: packet.RotationPacket,
 		},
 		{
 			name:         "Rotation None Right",
-			response:     NewRotation("", Right),
+			response:     NewRotation("", rotation.Right),
 			gameStateID:  "test-id",
 			expectedJSON: `{"type":"rotation","payload":{"gameStateId":"test-id","turretRotation":"right"}}`,
 			expectedType: packet.RotationPacket,

@@ -5,6 +5,9 @@ import (
 	"math/rand"
 
 	"hack-arena-2024-h2-go/packet/packets/agent_response"
+	"hack-arena-2024-h2-go/packet/packets/agent_response/ability"
+	"hack-arena-2024-h2-go/packet/packets/agent_response/movement"
+	"hack-arena-2024-h2-go/packet/packets/agent_response/rotation"
 	"hack-arena-2024-h2-go/packet/packets/game_end"
 	"hack-arena-2024-h2-go/packet/packets/game_state"
 	"hack-arena-2024-h2-go/packet/packets/lobby_data"
@@ -75,9 +78,9 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 	switch r := rand.Float32(); {
 	case r < 0.25:
 		// Move the tank
-		direction := agent_response.Forward
+		direction := movement.Forward
 		if rand.Intn(2) == 1 {
-			direction = agent_response.Backward
+			direction = movement.Backward
 		}
 		return agent_response.NewMovement(direction)
 	case r < 0.50:
@@ -85,9 +88,9 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 		randomRotation := func() string {
 			switch rand.Intn(3) {
 			case 0:
-				return agent_response.Left
+				return rotation.Left
 			case 1:
-				return agent_response.Right
+				return rotation.Right
 			default:
 				return ""
 			}
@@ -96,11 +99,11 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 	case r < 0.75:
 		// Use ability
 		abilities := []string{
-			agent_response.FireBullet,
-			agent_response.FireDoubleBullet,
-			agent_response.UseLaser,
-			agent_response.UseRadar,
-			agent_response.DropMine,
+			ability.FireBullet,
+			ability.FireDoubleBullet,
+			ability.UseLaser,
+			ability.UseRadar,
+			ability.DropMine,
 		}
 		abilityType := abilities[rand.Intn(len(abilities))]
 		return agent_response.NewAbilityUse(abilityType)
