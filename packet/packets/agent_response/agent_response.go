@@ -8,7 +8,7 @@ import (
 
 // AgentResponse represents the various responses an agent can have in the system.
 type AgentResponse struct {
-	// Type represents the kind of response (e.g., TankMovement, TankRotation, TankShoot)
+	// Type represents the kind of response (e.g., Movement, Rotation, AbilityUse)
 	Type ResponseType `json:"-"`
 
 	// Direction indicates the movement direction of the tank
@@ -22,64 +22,68 @@ type AgentResponse struct {
 	// TurretRotation specifies the rotation of the tank's turret
 	// -1: no rotation, 0: rotate left, 1: rotate right
 	TurretRotation int `json:"turretRotation,omitempty"`
+
+	// AbilityType represents the type of ability to use
+	AbilityType int `json:"abilityType,omitempty"`
 }
 
 // ResponseType is an enumeration of the types of responses an agent can have.
 type ResponseType string
 
 const (
-	TankMovement ResponseType = "tankMovement"
-	TankRotation ResponseType = "tankRotation"
-	TankShoot    ResponseType = "tankShoot"
-	ResponsePass ResponseType = "responsePass"
+	Movement   ResponseType = "movement"
+	Rotation   ResponseType = "rotation"
+	AbilityUse ResponseType = "abilityUse"
+	Pass       ResponseType = "pass"
 )
 
-// NewTankMovement creates a new AgentResponse for tank movement.
+// NewMovement creates a new AgentResponse for tank movement.
 // direction: 0 for forward, 1 for backward
-func NewTankMovement(direction int) *AgentResponse {
+func NewMovement(direction int) *AgentResponse {
 	return &AgentResponse{
-		Type:      TankMovement,
+		Type:      Movement,
 		Direction: direction,
 	}
 }
 
-// NewTankRotation creates a new AgentResponse for tank rotation.
+// NewRotation creates a new AgentResponse for tank rotation.
 // Both tankRotation and turretRotation use the following values:
 // -1: no rotation
 //
 //	0: rotate left
 //	1: rotate right
-func NewTankRotation(tankRotation, turretRotation int) *AgentResponse {
+func NewRotation(tankRotation, turretRotation int) *AgentResponse {
 	return &AgentResponse{
-		Type:           TankRotation,
+		Type:           Rotation,
 		TankRotation:   tankRotation,
 		TurretRotation: turretRotation,
 	}
 }
 
-// NewTankShoot creates a new AgentResponse for tank shooting.
-func NewTankShoot() *AgentResponse {
+// NewAbilityUse creates a new AgentResponse for ability use.
+func NewAbilityUse(abilityType int) *AgentResponse {
 	return &AgentResponse{
-		Type: TankShoot,
+		Type:        AbilityUse,
+		AbilityType: abilityType,
 	}
 }
 
-// NewResponsePass creates a new AgentResponse for response pass.
-func NewResponsePass() *AgentResponse {
+// NewPass creates a new AgentResponse for response pass.
+func NewPass() *AgentResponse {
 	return &AgentResponse{
-		Type: ResponsePass,
+		Type: Pass,
 	}
 }
 
 // MarshalJSON customizes the JSON representation of the AgentResponse type.
 func (ar *AgentResponse) MarshalJSON() ([]byte, error) {
 	switch ar.Type {
-	case TankMovement:
+	case Movement:
 		return json.Marshal(struct {
 			Direction int `json:"direction"`
 		}{ar.Direction})
 
-	case TankRotation:
+	case Rotation:
 		rotations := make(map[string]int)
 		if ar.TankRotation != -1 {
 			rotations["tankRotation"] = ar.TankRotation
@@ -89,10 +93,12 @@ func (ar *AgentResponse) MarshalJSON() ([]byte, error) {
 		}
 		return json.Marshal(rotations)
 
-	case TankShoot:
-		return json.Marshal(struct{}{})
+	case AbilityUse:
+		return json.Marshal(struct {
+			AbilityType int `json:"abilityType"`
+		}{ar.AbilityType})
 
-	case ResponsePass:
+	case Pass:
 		return json.Marshal(struct{}{})
 
 	default:
@@ -109,24 +115,26 @@ func (ar *AgentResponse) UnmarshalJSON(data []byte) error {
 
 	switch {
 	case hasKey(temp, "direction"):
-		return ar.unmarshalTankMovement(temp)
+		return ar.unmarshalMovement(temp)
 	case hasKey(temp, "tankRotation") || hasKey(temp, "turretRotation"):
-		return ar.unmarshalTankRotation(temp)
+		return ar.unmarshalRotation(temp)
+	case hasKey(temp, "abilityType"):
+		return ar.unmarshalAbilityUse(temp)
 	case len(temp) == 0:
-		ar.Type = ResponsePass
+		ar.Type = Pass
 		return nil
 	default:
 		return errors.New("invalid response type")
 	}
 }
 
-func (ar *AgentResponse) unmarshalTankMovement(temp map[string]json.RawMessage) error {
-	ar.Type = TankMovement
+func (ar *AgentResponse) unmarshalMovement(temp map[string]json.RawMessage) error {
+	ar.Type = Movement
 	return json.Unmarshal(temp["direction"], &ar.Direction)
 }
 
-func (ar *AgentResponse) unmarshalTankRotation(temp map[string]json.RawMessage) error {
-	ar.Type = TankRotation
+func (ar *AgentResponse) unmarshalRotation(temp map[string]json.RawMessage) error {
+	ar.Type = Rotation
 	ar.TankRotation = -1
 	ar.TurretRotation = -1
 
@@ -143,6 +151,11 @@ func (ar *AgentResponse) unmarshalTankRotation(temp map[string]json.RawMessage) 
 	return nil
 }
 
+func (ar *AgentResponse) unmarshalAbilityUse(temp map[string]json.RawMessage) error {
+	ar.Type = AbilityUse
+	return json.Unmarshal(temp["abilityType"], &ar.AbilityType)
+}
+
 func hasKey(m map[string]json.RawMessage, key string) bool {
 	_, ok := m[key]
 	return ok
@@ -150,15 +163,15 @@ func hasKey(m map[string]json.RawMessage, key string) bool {
 
 func (ar AgentResponse) ToPacket(gameStateID string) packet.Packet {
 	switch ar.Type {
-	case TankMovement:
+	case Movement:
 		return packet.Packet{
-			Type: packet.TankMovementPacket,
+			Type: packet.MovementPacket,
 			Payload: map[string]interface{}{
 				"gameStateId": gameStateID,
 				"direction":   ar.Direction,
 			},
 		}
-	case TankRotation:
+	case Rotation:
 		payload := map[string]interface{}{
 			"gameStateId": gameStateID,
 		}
@@ -169,19 +182,20 @@ func (ar AgentResponse) ToPacket(gameStateID string) packet.Packet {
 			payload["turretRotation"] = ar.TurretRotation
 		}
 		return packet.Packet{
-			Type:    packet.TankRotationPacket,
+			Type:    packet.RotationPacket,
 			Payload: payload,
 		}
-	case TankShoot:
+	case AbilityUse:
 		return packet.Packet{
-			Type: packet.TankShootPacket,
+			Type: packet.AbilityUsePacket,
 			Payload: map[string]interface{}{
 				"gameStateId": gameStateID,
+				"abilityType": ar.AbilityType,
 			},
 		}
-	case ResponsePass:
+	case Pass:
 		return packet.Packet{
-			Type: packet.ResponsePassPacket,
+			Type: packet.PassPacket,
 			Payload: map[string]interface{}{
 				"gameStateId": gameStateID,
 			},

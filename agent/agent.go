@@ -58,6 +58,20 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 // Returns:
 // - AgentResponse: The action or decision made by the agent, which will be communicated back to the game server.
 func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
+	// Find my tank
+	var myTank *game_state.Tank
+	for _, tank := range gameState.Tanks {
+		if tank.OwnerID == a.MyID {
+			myTank = &tank
+			break
+		}
+	}
+
+	// If my tank is not found, it is dead
+	if myTank == nil {
+		return agent_response.NewPass()
+	}
+
 	switch r := rand.Float32(); {
 	case r < 0.25:
 		// Move the tank
@@ -66,7 +80,7 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 		if rand.Intn(2) == 1 {
 			direction = 1
 		}
-		return agent_response.NewTankMovement(direction)
+		return agent_response.NewMovement(direction)
 	case r < 0.50:
 		// Rotate the tank and/or turret
 		// For both tank and turret rotation:
@@ -76,13 +90,15 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 		randomRotation := func() int {
 			return rand.Intn(3) - 1
 		}
-		return agent_response.NewTankRotation(randomRotation(), randomRotation())
+		return agent_response.NewRotation(randomRotation(), randomRotation())
 	case r < 0.75:
-		// Shoot
-		return agent_response.NewTankShoot()
+		// Use ability (previously Shoot)
+		// 0: fireBullet, 1: fireDoubleBullet, 2: useLaser, 3: useRadar, 4: dropMine
+		abilityType := rand.Intn(5)
+		return agent_response.NewAbilityUse(abilityType)
 	default:
 		// Pass
-		return agent_response.NewResponsePass()
+		return agent_response.NewPass()
 	}
 }
 

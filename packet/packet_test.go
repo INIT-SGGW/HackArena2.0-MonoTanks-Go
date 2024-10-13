@@ -65,6 +65,22 @@ func TestPacketUnmarshalJSON(t *testing.T) {
 			input:    `{"type": "invalidPacketUsageError"}`,
 			expected: packet.InvalidPacketUsageError,
 		},
+		{
+			input:    `{"type": "movement"}`,
+			expected: packet.MovementPacket,
+		},
+		{
+			input:    `{"type": "rotation"}`,
+			expected: packet.RotationPacket,
+		},
+		{
+			input:    `{"type": "abilityUse"}`,
+			expected: packet.AbilityUsePacket,
+		},
+		{
+			input:    `{"type": "pass"}`,
+			expected: packet.PassPacket,
+		},
 	}
 
 	for _, test := range tests {

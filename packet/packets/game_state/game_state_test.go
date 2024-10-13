@@ -19,13 +19,13 @@ func TestUnmarshalJSON(t *testing.T) {
                 "players": [
                     {
                         "id": "80fd0035-364e-4ec6-adc1-96208a580bd4",
-                        "nickname": "RUST3",
+                        "nickname": "GO3",
                         "color": 4294944256,
                         "ping": 1
                     },
                     {
                         "id": "e21b7b97-0451-4800-b1ba-0e5cfc983aa3",
-                        "nickname": "R1",
+                        "nickname": "GO1",
                         "color": 4294925049,
                         "ping": 0,
                         "score": 10,
@@ -175,13 +175,13 @@ func TestUnmarshalJSON(t *testing.T) {
 				Players: []Player{
 					{
 						ID:       "80fd0035-364e-4ec6-adc1-96208a580bd4",
-						Nickname: "RUST3",
+						Nickname: "GO3",
 						Color:    4294944256,
 						Ping:     uint64Ptr(1),
 					},
 					{
 						ID:       "e21b7b97-0451-4800-b1ba-0e5cfc983aa3",
-						Nickname: "R1",
+						Nickname: "GO1",
 						Color:    4294925049,
 						Ping:     uint64Ptr(0),
 						Score:    uint64Ptr(10),

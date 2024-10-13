@@ -30,6 +30,15 @@ type GameState struct {
 
 	// A 2D slice representing the visibility map, where each element is a boolean.
 	Visibility [][]bool
+
+	// A slice of Item objects representing all the items in the game.
+	Items []Item
+
+	// A slice of Laser objects representing all the lasers in the game.
+	Lasers []Laser
+
+	// A slice of Mine objects representing all the mines in the game.
+	Mines []Mine
 }
 
 // RawTank represents the raw JSON structure of a tank.
@@ -45,6 +54,9 @@ type RawTank struct {
 
 	// The turret of the tank.
 	Turret Turret `json:"turret"`
+
+	// The secondary item the tank is carrying. It's nil for other players' tanks.
+	SecondaryItem *int
 }
 
 // Turret represents the turret of a tank.
@@ -78,6 +90,9 @@ type Tank struct {
 
 	// The turret of the tank.
 	Turret Turret
+
+	// The secondary item the tank is carrying. It's nil for other players' tanks.
+	SecondaryItem *int
 }
 
 // Wall represents a wall in the game.
@@ -99,6 +114,9 @@ type RawBullet struct {
 
 	// The speed of the bullet.
 	Speed float64 `json:"speed"`
+
+	// The type of the bullet. Can be "bullet" or "doubleBullet".
+	Type string `json:"type"`
 }
 
 // Bullet represents a bullet in the game.
@@ -117,6 +135,9 @@ type Bullet struct {
 
 	// The speed of the bullet.
 	Speed float64
+
+	// The type of the bullet. Can be "bullet" or "doubleBullet".
+	Type string
 }
 
 // Player represents a player in the game.
@@ -138,6 +159,9 @@ type Player struct {
 
 	// Number of ticks (time units) remaining until the player's health or resource regenerates, if applicable. This is when player is dead.
 	TicksToRegen *uint64 `json:"ticksToRegen,omitempty"`
+
+	// Indicates whether the player is using radar. It's nil for players other than the current player.
+	IsUsingRadar *bool `json:"isUsingRadar,omitempty"`
 }
 
 // Zone represents a zone in the game world.
@@ -212,6 +236,48 @@ type BeingRetakenStatus struct {
 	RetakenByID string `json:"retakenById"`
 }
 
+// Item represents a secondary item on the map.
+type Item struct {
+	// The x-coordinate of the item.
+	X int
+
+	// The y-coordinate of the item.
+	Y int
+
+	// The type of the item. 1 is doubleBullet, 2 is laser, 3 is radar, 4 is mine.
+	Type int
+}
+
+// Laser represents a laser on the map.
+type Laser struct {
+	// The x-coordinate of the laser.
+	X int
+
+	// The y-coordinate of the laser.
+	Y int
+
+	// The unique identifier for the laser beam.
+	ID int
+
+	// The orientation of the laser. 0 means horizontal, 1 means vertical.
+	Orientation int
+}
+
+// Mine represents a mine on the map.
+type Mine struct {
+	// The x-coordinate of the mine.
+	X int
+
+	// The y-coordinate of the mine.
+	Y int
+
+	// The unique identifier for the mine.
+	ID int
+
+	// The number of ticks remaining until the mine explodes. If the mine is not exploding, it is nil.
+	ExplosionRemainingTicks *int
+}
+
 // rawGameState is a custom struct to unmarshal the JSON data for the game state.
 type rawGameState struct {
 	// A unique identifier for the game state.
@@ -262,7 +328,6 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 		for y, cell := range column {
 			if len(cell) > 0 {
 				var tileType struct {
-					// The type of the tile.
 					Type string `json:"type"`
 				}
 				if err := json.Unmarshal(cell[0], &tileType); err != nil {
@@ -274,25 +339,27 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 					gameState.Walls = append(gameState.Walls, Wall{X: x, Y: y})
 				case "tank":
 					var rawTank struct {
-						// The payload containing the raw tank data.
 						Payload RawTank `json:"payload"`
 					}
 					if err := json.Unmarshal(cell[0], &rawTank); err != nil {
 						return err
 					}
 					tank := Tank{
-						X:         x,
-						Y:         y,
-						Direction: rawTank.Payload.Direction,
-						Health:    rawTank.Payload.Health,
-						OwnerID:   rawTank.Payload.OwnerID,
-						Turret:    rawTank.Payload.Turret,
+						X:             x,
+						Y:             y,
+						Direction:     rawTank.Payload.Direction,
+						Health:        rawTank.Payload.Health,
+						OwnerID:       rawTank.Payload.OwnerID,
+						Turret:        rawTank.Payload.Turret,
+						SecondaryItem: rawTank.Payload.SecondaryItem,
 					}
 					gameState.Tanks = append(gameState.Tanks, tank)
 				case "bullet":
 					var rawBullet struct {
-						// The payload containing the raw bullet data.
-						Payload RawBullet `json:"payload"`
+						Payload struct {
+							RawBullet
+							Type string `json:"type"`
+						} `json:"payload"`
 					}
 					if err := json.Unmarshal(cell[0], &rawBullet); err != nil {
 						return err
@@ -303,8 +370,58 @@ func (gameState *GameState) UnmarshalJSON(data []byte) error {
 						Direction: rawBullet.Payload.Direction,
 						ID:        rawBullet.Payload.ID,
 						Speed:     rawBullet.Payload.Speed,
+						Type:      rawBullet.Payload.Type,
 					}
 					gameState.Bullets = append(gameState.Bullets, bullet)
+				case "item":
+					var rawItem struct {
+						Payload struct {
+							Type int `json:"type"`
+						} `json:"payload"`
+					}
+					if err := json.Unmarshal(cell[0], &rawItem); err != nil {
+						return err
+					}
+					item := Item{
+						X:    x,
+						Y:    y,
+						Type: rawItem.Payload.Type,
+					}
+					gameState.Items = append(gameState.Items, item)
+				case "laser":
+					var rawLaser struct {
+						Payload struct {
+							ID          int `json:"id"`
+							Orientation int `json:"orientation"`
+						} `json:"payload"`
+					}
+					if err := json.Unmarshal(cell[0], &rawLaser); err != nil {
+						return err
+					}
+					laser := Laser{
+						X:           x,
+						Y:           y,
+						ID:          rawLaser.Payload.ID,
+						Orientation: rawLaser.Payload.Orientation,
+					}
+					gameState.Lasers = append(gameState.Lasers, laser)
+				case "mine":
+					var rawMine struct {
+						Payload struct {
+							ID                      int  `json:"id"`
+							ExplosionRemainingTicks *int `json:"explosionRemainingTicks"`
+						} `json:"payload"`
+					}
+					if err := json.Unmarshal(cell[0], &rawMine); err != nil {
+						return err
+					}
+					mine := Mine{
+						X:                       x,
+						Y:                       y,
+						ID:                      rawMine.Payload.ID,
+						ExplosionRemainingTicks: rawMine.Payload.ExplosionRemainingTicks,
+					}
+					gameState.Mines = append(gameState.Mines, mine)
 				default:
 					return fmt.Errorf("unknown tile type: %s", tileType.Type)
 				}

@@ -15,9 +15,9 @@ const (
 	LobbyDeleted                   PacketType = "lobbyDeleted"
 	GameStart                      PacketType = "gameStart"
 	GameStatePacket                PacketType = "gameState"
-	TankMovementPacket             PacketType = "tankMovement"
-	TankRotationPacket             PacketType = "tankRotation"
-	TankShootPacket                PacketType = "tankShoot"
+	MovementPacket                 PacketType = "movement"
+	RotationPacket                 PacketType = "rotation"
+	AbilityUsePacket               PacketType = "abilityUse"
 	GameEndPacket                  PacketType = "gameEnd"
 	PlayerAlreadyMadeActionWarning PacketType = "playerAlreadyMadeActionWarning"
 	MissingGameStateIdWarning      PacketType = "missingGameStateIdWarning"
@@ -25,7 +25,7 @@ const (
 	InvalidPacketTypeError         PacketType = "invalidPacketTypeError"
 	InvalidPacketUsageError        PacketType = "invalidPacketUsageError"
 	ActionIgnoredDueToDeadWarning  PacketType = "actionIgnoredDueToDeadWarning"
-	ResponsePassPacket             PacketType = "responsePass"
+	PassPacket                     PacketType = "pass"
 )
 
 type Packet struct {
