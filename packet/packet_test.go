@@ -46,10 +46,6 @@ func TestPacketUnmarshalJSON(t *testing.T) {
 			expected: packet.PlayerAlreadyMadeActionWarning,
 		},
 		{
-			input:    `{"type": "missingGameStateIdWarning"}`,
-			expected: packet.MissingGameStateIdWarning,
-		},
-		{
 			input:    `{"type": "slowResponseWarning"}`,
 			expected: packet.SlowResponseWarning,
 		},

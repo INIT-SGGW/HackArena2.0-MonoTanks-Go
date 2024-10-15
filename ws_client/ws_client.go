@@ -14,6 +14,8 @@ import (
 	"net/url"
 	"sync"
 
+	"hack-arena-2024-h2-go/packet/warning"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -209,18 +211,23 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 			log.Printf("[System] 🚨 Error handling game ended: %v", err)
 		}
 
+	// Warnings
+	case packet.CustomWarning:
+		message := p.Payload.(map[string]interface{})["message"].(string)
+		handlers.HandleWarning(client.agent, warning.CustomWarning, &message)
 	case packet.PlayerAlreadyMadeActionWarning:
-		fmt.Println("[System] 🚨 Player already made action warning")
-	case packet.MissingGameStateIdWarning:
-		fmt.Println("[System] 🚨 Missing game state id warning")
-	case packet.SlowResponseWarning:
-		fmt.Println("[System] 🚨 Slow response warning")
+		handlers.HandleWarning(client.agent, warning.PlayerAlreadyMadeActionWarning, nil)
 	case packet.ActionIgnoredDueToDeadWarning:
-		fmt.Println("[System] 🚨 Action ignored due to dead warning")
+		handlers.HandleWarning(client.agent, warning.ActionIgnoredDueToDeadWarning, nil)
+	case packet.SlowResponseWarning:
+		handlers.HandleWarning(client.agent, warning.SlowResponseWarning, nil)
+
+	// Errors
 	case packet.InvalidPacketTypeError:
 		fmt.Println("[System] 🚨 Client sent an invalid packet type error")
 	case packet.InvalidPacketUsageError:
 		fmt.Println("[System] 🚨 Client used packet in invalid way")
+
 	default:
 		log.Printf("[System] 🚨 Unknown packet type -> %s", p.Type)
 	}

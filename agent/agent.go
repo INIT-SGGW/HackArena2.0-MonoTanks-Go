@@ -11,6 +11,7 @@ import (
 	"hack-arena-2024-h2-go/packet/packets/game_end"
 	"hack-arena-2024-h2-go/packet/packets/game_state"
 	"hack-arena-2024-h2-go/packet/packets/lobby_data"
+	"hack-arena-2024-h2-go/packet/warning"
 )
 
 // Agent represents an AI player in the game.
@@ -61,6 +62,7 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 // Returns:
 // - AgentResponse: The action or decision made by the agent, which will be communicated back to the game server.
 func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
+
 	// Find my tank
 	var myTank *game_state.Tank
 	for _, tank := range gameState.Tanks {
@@ -110,6 +112,29 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 	default:
 		// Pass
 		return agent_response.NewPass()
+	}
+}
+
+// OnWarningReceived is called when a warning is received from the server.
+// Please remember that if your agent is stuck processing a warning,
+// the next move won't be called and vice versa.
+//
+// Parameters:
+// - warning: The warning received from the server.
+func (a *Agent) OnWarningReceived(warn warning.Warning, message *string) {
+	switch warn {
+	case warning.CustomWarning:
+		msg := "No message"
+		if message != nil {
+			msg = *message
+		}
+		fmt.Printf("[System] ⚠️ Custom Warning: %s\n", msg)
+	case warning.PlayerAlreadyMadeActionWarning:
+		fmt.Println("[System] ⚠️ Player already made action warning")
+	case warning.ActionIgnoredDueToDeadWarning:
+		fmt.Println("[System] ⚠️ Action ignored due to dead warning")
+	case warning.SlowResponseWarning:
+		fmt.Println("[System] ⚠️ Slow response warning")
 	}
 }
 

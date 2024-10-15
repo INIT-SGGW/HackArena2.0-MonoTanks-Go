@@ -19,12 +19,12 @@ const (
 	RotationPacket                 PacketType = "rotation"
 	AbilityUsePacket               PacketType = "abilityUse"
 	GameEndPacket                  PacketType = "gameEnd"
+	CustomWarning                  PacketType = "customWarning"
 	PlayerAlreadyMadeActionWarning PacketType = "playerAlreadyMadeActionWarning"
-	MissingGameStateIdWarning      PacketType = "missingGameStateIdWarning"
+	ActionIgnoredDueToDeadWarning  PacketType = "actionIgnoredDueToDeadWarning"
 	SlowResponseWarning            PacketType = "slowResponseWarning"
 	InvalidPacketTypeError         PacketType = "invalidPacketTypeError"
 	InvalidPacketUsageError        PacketType = "invalidPacketUsageError"
-	ActionIgnoredDueToDeadWarning  PacketType = "actionIgnoredDueToDeadWarning"
 	PassPacket                     PacketType = "pass"
 )
 

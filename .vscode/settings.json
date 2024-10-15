@@ -1,3 +1,9 @@
 {
     "terminal.integrated.scrollback": 10000,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "always"
+    }
 }
