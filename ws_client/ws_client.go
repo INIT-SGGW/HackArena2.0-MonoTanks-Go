@@ -214,13 +214,21 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 	// Warnings
 	case packet.CustomWarning:
 		message := p.Payload.(map[string]interface{})["message"].(string)
+		client.agentMutex.Lock()
 		handlers.HandleWarning(client.agent, warning.CustomWarning, &message)
+		client.agentMutex.Unlock()
 	case packet.PlayerAlreadyMadeActionWarning:
+		client.agentMutex.Lock()
 		handlers.HandleWarning(client.agent, warning.PlayerAlreadyMadeActionWarning, nil)
+		client.agentMutex.Unlock()
 	case packet.ActionIgnoredDueToDeadWarning:
+		client.agentMutex.Lock()
 		handlers.HandleWarning(client.agent, warning.ActionIgnoredDueToDeadWarning, nil)
+		client.agentMutex.Unlock()
 	case packet.SlowResponseWarning:
+		client.agentMutex.Lock()
 		handlers.HandleWarning(client.agent, warning.SlowResponseWarning, nil)
+		client.agentMutex.Unlock()
 
 	// Errors
 	case packet.InvalidPacketTypeError:
