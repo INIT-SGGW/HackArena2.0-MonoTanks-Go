@@ -63,6 +63,113 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 // - AgentResponse: The action or decision made by the agent, which will be communicated back to the game server.
 func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
 
+	// Print map as ascii
+	row_number := len(gameState.Visibility)
+	col_number := len(gameState.Visibility[0])
+
+	fmt.Println("Map:")
+	for row := 0; row < row_number; row++ {
+		for col := 0; col < col_number; col++ {
+			symbol := " "
+
+			isVisible := gameState.Visibility[row][col]
+
+			isWall := false
+			for _, wall := range gameState.Walls {
+				if wall.X == col && wall.Y == row {
+					isWall = true
+					break
+				}
+			}
+
+			isTank := false
+			for _, tank := range gameState.Tanks {
+				if tank.X == col && tank.Y == row {
+					isTank = true
+					break
+				}
+			}
+
+			isMyTank := false
+			for _, tank := range gameState.Tanks {
+				if tank.X == col && tank.Y == row && tank.OwnerID == a.MyID {
+					isMyTank = true
+					break
+				}
+			}
+
+			isBullet := false
+			for _, bullet := range gameState.Bullets {
+				if bullet.X == col && bullet.Y == row {
+					isBullet = true
+					break
+				}
+			}
+
+			isLaser := false
+			for _, laser := range gameState.Lasers {
+				if laser.X == col && laser.Y == row {
+					isLaser = true
+					break
+				}
+			}
+
+			isMine := false
+			for _, mine := range gameState.Mines {
+				if mine.X == col && mine.Y == row {
+					isMine = true
+					break
+				}
+			}
+
+			isItem := false
+			for _, item := range gameState.Items {
+				if item.X == col && item.Y == row {
+					isItem = true
+					break
+				}
+			}
+
+			zoneSymbol := ""
+			for _, zone := range gameState.Zones {
+				start_x := int(zone.X)
+				start_y := int(zone.Y)
+				end_x := int(zone.X) + int(zone.Width)
+				end_y := int(zone.Y) + int(zone.Height)
+
+				if col >= start_x && col <= end_x && row >= start_y && row <= end_y {
+					zoneSymbol = string(zone.Index)
+					break
+				}
+			}
+
+			if isVisible {
+				symbol = "."
+			}
+
+			if isWall {
+				symbol = "#"
+			} else if isMyTank {
+				symbol = "T"
+			} else if isTank {
+				symbol = "t"
+			} else if isBullet {
+				symbol = "B"
+			} else if isLaser {
+				symbol = "L"
+			} else if isMine {
+				symbol = "M"
+			} else if isItem {
+				symbol = "I"
+			} else if zoneSymbol != "" {
+				symbol = zoneSymbol
+			}
+
+			fmt.Print(symbol + " ")
+		}
+		fmt.Println()
+	}
+
 	// Find my tank
 	var myTank *game_state.Tank
 	for _, tank := range gameState.Tanks {
