@@ -34,8 +34,16 @@ func TestPacketUnmarshalJSON(t *testing.T) {
 			expected: packet.LobbyDeleted,
 		},
 		{
+			input:    `{"type": "gameStarting"}`,
+			expected: packet.GameStarting,
+		},
+		{
+			input:    `{"type": "readyToReceiveGameState"}`,
+			expected: packet.ReadyToReceiveGameState,
+		},
+		{
 			input:    `{"type": "gameStart"}`,
-			expected: packet.GameStart,
+			expected: packet.GameStarted,
 		},
 		{
 			input:    `{"type": "gameEnd"}`,

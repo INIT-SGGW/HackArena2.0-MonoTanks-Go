@@ -169,8 +169,19 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 		}
 	case packet.LobbyDeleted:
 		fmt.Println("[System] 🚪 Lobby deleted")
-	case packet.GameStart:
+
+	case packet.GameStarting:
+		client.agentMutex.Lock()
+		if client.agent != nil {
+			handlers.HandleGameStarting(client.tx, client.agent)
+		} else {
+			log.Println("[System] 🚨 Received GameStarting but agent is not initialized")
+		}
+		client.agentMutex.Unlock()
+
+	case packet.GameStarted:
 		fmt.Println("[System] 🎲 Game started")
+
 	case packet.GameStatePacket:
 
 		var gameState game_state.GameState
