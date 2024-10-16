@@ -53,6 +53,18 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 	// Implement the logic for handling lobby data changes
 }
 
+// OnGameStarting is called when the game is about to start.
+// This method is triggered after all players have joined the lobby and the game is ready to begin.
+// It is used internally to synchronize agents and the server.
+//
+// Default Behavior:
+// By default, this method prints a message indicating that the game is starting.
+//
+// Note: This method is called before the first game state is received.
+func (a *Agent) OnGameStarting() {
+	fmt.Println("[System] 🎲 Game starting")
+}
+
 // NextMove is called after each game tick, when new game state data is received from the server.
 // This method is responsible for determining the agent's next move based on the current game state.
 //
@@ -63,31 +75,79 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 // Returns:
 // - AgentResponse: The action or decision made by the agent, which will be communicated back to the game server.
 func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
+
+	// Find my tank
+	var myTank *game_state.Tank
+	for _, tank := range gameState.Tanks {
+		if tank.OwnerID == a.MyID {
+			myTank = &tank
+			break
+		}
+	}
+
+	// If my tank is not found, it is dead
+	if myTank == nil {
+		return agent_response.NewPass()
+	}
+
 	switch r := rand.Float32(); {
 	case r < 0.25:
 		// Move the tank
-		// 0 represents forward movement, 1 represents backward movement
-		direction := 0
+		direction := movement.Forward
 		if rand.Intn(2) == 1 {
-			direction = 1
+			direction = movement.Backward
 		}
-		return agent_response.NewTankMovement(direction)
+		return agent_response.NewMovement(direction)
 	case r < 0.50:
 		// Rotate the tank and/or turret
-		// For both tank and turret rotation:
-		// -1 represents no rotation
-		//  0 represents left rotation
-		//  1 represents right rotation
-		randomRotation := func() int {
-			return rand.Intn(3) - 1
+		randomRotation := func() string {
+			switch rand.Intn(3) {
+			case 0:
+				return rotation.Left
+			case 1:
+				return rotation.Right
+			default:
+				return ""
+			}
 		}
-		return agent_response.NewTankRotation(randomRotation(), randomRotation())
+		return agent_response.NewRotation(randomRotation(), randomRotation())
 	case r < 0.75:
-		// Shoot
-		return agent_response.NewTankShoot()
+		// Use ability
+		abilities := []string{
+			ability.FireBullet,
+			ability.FireDoubleBullet,
+			ability.UseLaser,
+			ability.UseRadar,
+			ability.DropMine,
+		}
+		abilityType := abilities[rand.Intn(len(abilities))]
+		return agent_response.NewAbilityUse(abilityType)
 	default:
 		// Pass
-		return agent_response.NewResponsePass()
+		return agent_response.NewPass()
+	}
+}
+
+// OnWarningReceived is called when a warning is received from the server.
+// Please remember that if your agent is stuck processing a warning,
+// the next move won't be called and vice versa.
+//
+// Parameters:
+// - warning: The warning received from the server.
+func (a *Agent) OnWarningReceived(warn warning.Warning, message *string) {
+	switch warn {
+	case warning.CustomWarning:
+		msg := "No message"
+		if message != nil {
+			msg = *message
+		}
+		fmt.Printf("[System] ⚠️ Custom Warning: %s\n", msg)
+	case warning.PlayerAlreadyMadeActionWarning:
+		fmt.Println("[System] ⚠️ Player already made action warning")
+	case warning.ActionIgnoredDueToDeadWarning:
+		fmt.Println("[System] ⚠️ Action ignored due to dead warning")
+	case warning.SlowResponseWarning:
+		fmt.Println("[System] ⚠️ Slow response warning")
 	}
 }
 
@@ -125,18 +185,24 @@ The `Agent` struct in `agent/agent.go` implements the agent's behavior in the ga
 
 `NextMove` returns an `AgentResponse` struct from `packet/packets/agent_response/agent_response.go`, which can be one of the following:
 
-- `TankMovement`: Move the tank forward or backward. The `Direction` field is set to 0 for forward movement and 1 for backward movement.
-- `TankRotation`: Rotate the tank body and/or turret. Both `TankRotation` and `TurretRotation` fields use the following values:
-  - -1: no rotation
-  - 0: rotate left
-  - 1: rotate right
-- `TankShoot`: Shoot a projectile in the direction the turret is facing.
+- `Movement`: Move the tank forward or backward. The `Direction` field is set to "forward" for forward movement and "backward" for backward movement.
+- `Rotation`: Rotate the tank body and/or turret. Both `TankRotation` and `TurretRotation` fields use the following values:
+  - "": no rotation
+  - "left": rotate left
+  - "right": rotate right
+- `AbilityUse`: Use an ability. The `AbilityType` field specifies which ability to use (e.g., "fireBullet", "fireDoubleBullet", "useLaser", "useRadar", "dropMine").
+- `Pass`: Do nothing this turn.
 
 The `GameState` struct in `packet/packets/game_state/game_state.go` represents the current state of the game, including information about tanks, walls, bullets, players, and zones.
 
 You can modify the `agent/agent.go` file and create more files in the `agent` directory. Do not modify any other files, as this may prevent us from running your agent during the competition.
 
 If you want to extend the functionality of the `GameState` struct or other structs, create your own methods or helper functions within the `agent` package.
+
+### Including Static Files
+
+If you need to include static files that your program should access during testing or execution, place them in the `data` folder. This folder is copied into the Docker image and will be accessible to your application at runtime. For example, you could include configuration files, pre-trained models, or any other data your agent might need.
+
 
 ## Running the Client
 

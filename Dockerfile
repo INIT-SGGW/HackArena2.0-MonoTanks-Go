@@ -25,5 +25,10 @@ FROM scratch
 # Copy the statically compiled binary from the build stage
 COPY --from=builder /app/bin/my-go-app /app/my-go-app
 
+# Copy the data directory. Developers can place their files in this directory and application will have access to them.
+COPY ./data /app/data
+
+WORKDIR /app
+
 # Command to run the binary
 ENTRYPOINT ["/app/my-go-app"]
