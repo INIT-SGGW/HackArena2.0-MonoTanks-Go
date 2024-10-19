@@ -7,27 +7,38 @@ import (
 type PacketType string
 
 const (
-	Ping                           PacketType = "ping"
-	Pong                           PacketType = "pong"
-	ConnectionAccepted             PacketType = "connectionAccepted"
-	ConnectionRejected             PacketType = "connectionRejected"
-	LobbyDataPacket                PacketType = "lobbyData"
-	LobbyDeleted                   PacketType = "lobbyDeleted"
-	GameStarting                   PacketType = "gameStarting"
-	ReadyToReceiveGameState        PacketType = "readyToReceiveGameState"
-	GameStarted                    PacketType = "gameStart"
-	GameStatePacket                PacketType = "gameState"
-	MovementPacket                 PacketType = "movement"
-	RotationPacket                 PacketType = "rotation"
-	AbilityUsePacket               PacketType = "abilityUse"
-	GameEndPacket                  PacketType = "gameEnd"
+	Ping PacketType = "ping"
+	Pong PacketType = "pong"
+
+	ConnectionRejected PacketType = "connectionRejected"
+	ConnectionAccepted PacketType = "connectionAccepted"
+
+	LobbyDataPacket  PacketType = "lobbyData"
+	LobbyDataRequest PacketType = "lobbyDataRequest"
+
+	GameNotStarted PacketType = "gameNotStarted"
+	GameStarting   PacketType = "gameStarting"
+	GameStarted    PacketType = "gameStarted"
+	GameInProgress PacketType = "gameInProgress"
+
+	GameStatusRequest       PacketType = "gameStatusRequest"
+	ReadyToReceiveGameState PacketType = "readyToReceiveGameState"
+
+	GameStatePacket  PacketType = "gameState"
+	MovementPacket   PacketType = "movement"
+	RotationPacket   PacketType = "rotation"
+	AbilityUsePacket PacketType = "abilityUse"
+	PassPacket       PacketType = "pass"
+
+	GameEndedPacket PacketType = "gameEnded"
+
 	CustomWarning                  PacketType = "customWarning"
 	PlayerAlreadyMadeActionWarning PacketType = "playerAlreadyMadeActionWarning"
 	ActionIgnoredDueToDeadWarning  PacketType = "actionIgnoredDueToDeadWarning"
 	SlowResponseWarning            PacketType = "slowResponseWarning"
-	InvalidPacketTypeError         PacketType = "invalidPacketTypeError"
-	InvalidPacketUsageError        PacketType = "invalidPacketUsageError"
-	PassPacket                     PacketType = "pass"
+
+	InvalidPacketTypeError  PacketType = "invalidPacketTypeError"
+	InvalidPacketUsageError PacketType = "invalidPacketUsageError"
 )
 
 type Packet struct {

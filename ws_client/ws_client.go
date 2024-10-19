@@ -13,6 +13,7 @@ import (
 	"log"
 	"net/url"
 	"sync"
+	"time"
 
 	"hack-arena-2024-h2-go/packet/warning"
 
@@ -143,10 +144,24 @@ func (client *WebSocketClient) processMessage(message []byte) {
 
 func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 	switch p.Type {
-	case packet.ConnectionAccepted:
-		fmt.Println("[System] 🎉 Connection accepted")
+
 	case packet.ConnectionRejected:
 		fmt.Printf("[System] 🚨 Connection rejected -> %s\n", p.Payload)
+	case packet.ConnectionAccepted:
+		fmt.Println("[System] 🎉 Connection accepted")
+
+		lobbyDataRequest := packet.Packet{
+			Type:    packet.LobbyDataRequest,
+			Payload: nil,
+		}
+
+		lobbyDataRequestJson, err := json.Marshal(lobbyDataRequest)
+		if err != nil {
+			log.Printf("[System] 🚨 Error marshalling LobbyDataRequest: %v", err)
+			return
+		}
+		client.tx <- lobbyDataRequestJson
+
 	case packet.LobbyDataPacket:
 		fmt.Println("[System] 🎳 Lobby data received")
 		var lobbyData lobby_data.LobbyData
@@ -162,25 +177,39 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 		}
 
 		client.agentMutex.Lock()
-		err = handlers.HandlePrepareToGame(&client.agent, &lobbyData)
+		err = handlers.HandlePrepareToGame(client.tx, &client.agent, &lobbyData)
 		client.agentMutex.Unlock()
 		if err != nil {
 			log.Printf("[System] 🚨 Error handling prepare to game: %v", err)
 		}
-	case packet.LobbyDeleted:
-		fmt.Println("[System] 🚪 Lobby deleted")
+
+	case packet.GameNotStarted:
+		fmt.Println("[System] 🎲 Game not started")
 
 	case packet.GameStarting:
-		client.agentMutex.Lock()
-		if client.agent != nil {
-			handlers.HandleGameStarting(client.tx, client.agent)
-		} else {
-			log.Println("[System] 🚨 Received GameStarting but agent is not initialized")
+		fmt.Println("[System] 🎲 Game starting")
+
+		// Wait until agent is not None
+		for client.agent == nil {
+			time.Sleep(100 * time.Millisecond)
 		}
-		client.agentMutex.Unlock()
+
+		readyToReceiveGameState := packet.Packet{
+			Type:    packet.ReadyToReceiveGameState,
+			Payload: nil,
+		}
+		readyToReceiveGameStateJson, err := json.Marshal(readyToReceiveGameState)
+		if err != nil {
+			log.Printf("[System] 🚨 Error marshalling ReadyToReceiveGameState: %v", err)
+			return
+		}
+		client.tx <- readyToReceiveGameStateJson
 
 	case packet.GameStarted:
 		fmt.Println("[System] 🎲 Game started")
+
+	case packet.GameInProgress:
+		fmt.Println("[System] 🎲 Game in progress")
 
 	case packet.GameStatePacket:
 
@@ -205,7 +234,7 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 		}
 		client.agentMutex.Unlock()
 
-	case packet.GameEndPacket:
+	case packet.GameEndedPacket:
 		fmt.Println("[System] 🏁 Game ended")
 
 		var gameEnd game_end.GameEnd

@@ -53,18 +53,6 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 	// Implement the logic for handling lobby data changes
 }
 
-// OnGameStarting is called when the game is about to start.
-// This method is triggered after all players have joined the lobby and the game is ready to begin.
-// It is used internally to synchronize agents and the server.
-//
-// Default Behavior:
-// By default, this method prints a message indicating that the game is starting.
-//
-// Note: This method is called before the first game state is received.
-func (a *Agent) OnGameStarting() {
-	fmt.Println("[System] 🎲 Game starting")
-}
-
 // NextMove is called after each game tick, when new game state data is received from the server.
 // This method is responsible for determining the agent's next move based on the current game state.
 //
@@ -221,7 +209,7 @@ Assuming the game server is running on `localhost:5000` (refer to the server
 repository's README for setup instructions), start the client by running:
 
 ```sh
-go run main.go --nickname go
+go run main.go --nickname TEAM_NAME
 ```
 
 The `--nickname` argument is required and must be unique. For additional
@@ -234,7 +222,7 @@ go run main.go --help
 To build and run an optimized release version of the client, use:
 
 ```sh
-go run main.go --nickname go
+go run main.go --nickname TEAM_NAME
 ```
 
 ### 2. Running in a VS Code Development Container
@@ -260,7 +248,7 @@ your local machine, use the `--host host.docker.internal` flag to connect the
 Docker container to your local host.
 
 ```sh
-go run main.go --nickname go --host host.docker.internal
+go run main.go --host host.docker.internal --nickname TEAM_NAME
 ```
 
 ### 3. Running in a Docker Container (Manual Setup)
@@ -276,7 +264,7 @@ Steps:
    ```
 2. Run the Docker container:
    ```sh
-   docker run --rm client --nickname go --host host.docker.internal
+   docker run --rm client --nickname TEAM_NAME --host host.docker.internal
    ```
 
 If the server is running on your local machine, use the

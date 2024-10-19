@@ -30,10 +30,6 @@ func TestPacketUnmarshalJSON(t *testing.T) {
 			expected: packet.ConnectionRejected,
 		},
 		{
-			input:    `{"type": "lobbyDeleted"}`,
-			expected: packet.LobbyDeleted,
-		},
-		{
 			input:    `{"type": "gameStarting"}`,
 			expected: packet.GameStarting,
 		},
@@ -42,12 +38,12 @@ func TestPacketUnmarshalJSON(t *testing.T) {
 			expected: packet.ReadyToReceiveGameState,
 		},
 		{
-			input:    `{"type": "gameStart"}`,
+			input:    `{"type": "gameStarted"}`,
 			expected: packet.GameStarted,
 		},
 		{
-			input:    `{"type": "gameEnd"}`,
-			expected: packet.GameEndPacket,
+			input:    `{"type": "gameEnded"}`,
+			expected: packet.GameEndedPacket,
 		},
 		{
 			input:    `{"type": "playerAlreadyMadeActionWarning"}`,
@@ -84,6 +80,30 @@ func TestPacketUnmarshalJSON(t *testing.T) {
 		{
 			input:    `{"type": "pass"}`,
 			expected: packet.PassPacket,
+		},
+		{
+			input:    `{"type": "gameNotStarted"}`,
+			expected: packet.GameNotStarted,
+		},
+		{
+			input:    `{"type": "gameInProgress"}`,
+			expected: packet.GameInProgress,
+		},
+		{
+			input:    `{"type": "gameStatusRequest"}`,
+			expected: packet.GameStatusRequest,
+		},
+		{
+			input:    `{"type": "gameState"}`,
+			expected: packet.GameStatePacket,
+		},
+		{
+			input:    `{"type": "lobbyDataRequest"}`,
+			expected: packet.LobbyDataRequest,
+		},
+		{
+			input:    `{"type": "customWarning"}`,
+			expected: packet.CustomWarning,
 		},
 	}
 
@@ -276,7 +296,7 @@ func TestPacketUnmarshalJSONWithLobbyDataStruct(t *testing.T) {
 
 func TestPacketUnmarshalJSONWithGameEnd(t *testing.T) {
 	input := `{
-        "type": "gameEnd",
+        "type": "gameEnded",
         "payload": {
             "players": [
                 {"id": "player1", "score": 10},
@@ -289,8 +309,8 @@ func TestPacketUnmarshalJSONWithGameEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error unmarshalling packet: %v", err)
 	}
-	if p.Type != packet.GameEndPacket {
-		t.Fatalf("Expected type %v, got %v", packet.GameEndPacket, p.Type)
+	if p.Type != packet.GameEndedPacket {
+		t.Fatalf("Expected type %v, got %v", packet.GameEndedPacket, p.Type)
 	}
 	payload, ok := p.Payload.(map[string]interface{})
 	if !ok {

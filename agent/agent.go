@@ -52,18 +52,6 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 	// Implement the logic for handling lobby data changes
 }
 
-// OnGameStarting is called when the game is about to start.
-// This method is triggered after all players have joined the lobby and the game is ready to begin.
-// It is used internally to synchronize agents and the server.
-//
-// Default Behavior:
-// By default, this method prints a message indicating that the game is starting.
-//
-// Note: This method is called before the first game state is received.
-func (a *Agent) OnGameStarting() {
-	fmt.Println("[System] 🎲 Game starting")
-}
-
 // NextMove is called after each game tick, when new game state data is received from the server.
 // This method is responsible for determining the agent's next move based on the current game state.
 //

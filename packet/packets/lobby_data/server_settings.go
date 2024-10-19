@@ -19,4 +19,14 @@ type ServerSettings struct {
 	// immediately after all players have made their action (true)
 	// or at regular intervals (false).
 	EagerBroadcast bool `json:"eagerBroadcast"`
+
+	// SandboxMode is a flag that determines whether the game is in sandbox mode.
+	// If sandbox mode is enabled, the game will not progress and will remain in the same state indefinitely.
+	SandboxMode bool `json:"sandboxMode"`
+
+	// Ticks is the number of ticks to run the game for. This is nil if sandbox mode is enabled.
+	Ticks *int `json:"ticks"`
+
+	// MatchName is the name of the match.
+	MatchName *string `json:"matchName"`
 }
