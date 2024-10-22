@@ -63,6 +63,131 @@ func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 // - AgentResponse: The action or decision made by the agent, which will be communicated back to the game server.
 func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
 
+	// Print map as ascii
+	row_number := len(gameState.Visibility)
+	col_number := len(gameState.Visibility[0])
+
+	fmt.Println("Map:")
+	for row := 0; row < row_number; row++ {
+
+	out:
+		for col := 0; col < col_number; col++ {
+
+			isVisible := gameState.Visibility[row][col]
+
+			for _, wall := range gameState.Walls {
+				if wall.X == col && wall.Y == row {
+					fmt.Print("# ")
+					continue out
+				}
+			}
+
+			for _, tank := range gameState.Tanks {
+				if tank.X == col && tank.Y == row {
+					if tank.OwnerID == a.MyID {
+						if tank.Direction == "up" {
+							fmt.Print("^ ")
+						} else if tank.Direction == "down" {
+							fmt.Print("v ")
+						} else if tank.Direction == "left" {
+							fmt.Print("< ")
+						} else {
+							fmt.Print("> ")
+						}
+					} else {
+						fmt.Print("T ")
+					}
+					continue out
+				}
+			}
+
+			for _, bullet := range gameState.Bullets {
+				if bullet.X == col && bullet.Y == row {
+					if bullet.Type == "basic" {
+						if bullet.Direction == "up" {
+							fmt.Print("↑ ")
+						} else if bullet.Direction == "down" {
+							fmt.Print("↓ ")
+						} else if bullet.Direction == "left" {
+							fmt.Print("← ")
+						} else {
+							fmt.Print("→ ")
+						}
+					} else {
+						if bullet.Direction == "up" {
+							fmt.Print("⇈ ")
+						} else if bullet.Direction == "down" {
+							fmt.Print("⇊ ")
+						} else if bullet.Direction == "left" {
+							fmt.Print("⇇ ")
+						} else {
+							fmt.Print("⇉ ")
+						}
+					}
+					continue out
+				}
+			}
+
+			for _, laser := range gameState.Lasers {
+				if laser.X == col && laser.Y == row {
+					if laser.Orientation == "horizontal" {
+						fmt.Print("═ ")
+					} else {
+						fmt.Print("║ ")
+					}
+					continue out
+				}
+			}
+
+			for _, mine := range gameState.Mines {
+				if mine.X == col && mine.Y == row {
+					fmt.Print("X ")
+					continue out
+				}
+			}
+
+			for _, item := range gameState.Items {
+				if item.X == col && item.Y == row {
+					if item.Type == "doubleBullet" {
+						fmt.Print("D ")
+					} else if item.Type == "laser" {
+						fmt.Print("L ")
+					} else if item.Type == "radar" {
+						fmt.Print("R ")
+					} else if item.Type == "mine" {
+						fmt.Print("M ")
+					}
+					continue out
+				}
+			}
+
+			for _, zone := range gameState.Zones {
+				start_x := int(zone.X)
+				start_y := int(zone.Y)
+				end_x := int(zone.X) + int(zone.Width)
+				end_y := int(zone.Y) + int(zone.Height)
+
+				if col >= start_x && col <= end_x && row >= start_y && row <= end_y {
+					if isVisible {
+						fmt.Print(string(zone.Index) + " ")
+					} else {
+						fmt.Print(string(zone.Index+32) + " ")
+					}
+					continue out
+				}
+			}
+
+			if isVisible {
+				fmt.Print(". ")
+				continue out
+			}
+
+			fmt.Print("  ")
+
+		}
+		fmt.Println()
+	}
+
 	// Find my tank
 	var myTank *game_state.Tank
 	for _, tank := range gameState.Tanks {
