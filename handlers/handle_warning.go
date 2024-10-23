@@ -2,17 +2,17 @@ package handlers
 
 import (
 	"fmt"
-	"hack-arena-2024-h2-go/agent"
-	"hack-arena-2024-h2-go/packet/warning"
+	"hackarena2-0-mono-tanks-go/bot"
+	"hackarena2-0-mono-tanks-go/packet/warning"
 )
 
-func HandleWarning(agent *agent.Agent, warn warning.Warning, message *string) error {
+func HandleWarning(botInstance *bot.Bot, warn warning.Warning, message *string) error {
 
-	if agent == nil {
-		return fmt.Errorf("agent not initialized")
+	if botInstance == nil {
+		return fmt.Errorf("bot not initialized")
 	}
 
-	agent.OnWarningReceived(warn, message)
+	botInstance.OnWarningReceived(warn, message)
 
 	return nil
 }

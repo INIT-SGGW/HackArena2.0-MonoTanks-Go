@@ -4,29 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hack-arena-2024-h2-go/agent"
-	"hack-arena-2024-h2-go/handlers"
-	"hack-arena-2024-h2-go/packet"
-	"hack-arena-2024-h2-go/packet/packets/game_end"
-	"hack-arena-2024-h2-go/packet/packets/game_state"
-	"hack-arena-2024-h2-go/packet/packets/lobby_data"
+	"hackarena2-0-mono-tanks-go/bot"
+	"hackarena2-0-mono-tanks-go/handlers"
+	"hackarena2-0-mono-tanks-go/packet"
+	"hackarena2-0-mono-tanks-go/packet/packets/game_end"
+	"hackarena2-0-mono-tanks-go/packet/packets/game_state"
+	"hackarena2-0-mono-tanks-go/packet/packets/lobby_data"
 	"log"
 	"net/url"
 	"sync"
 	"time"
 
-	"hack-arena-2024-h2-go/packet/warning"
+	"hackarena2-0-mono-tanks-go/packet/warning"
 
 	"github.com/gorilla/websocket"
 )
 
 type WebSocketClient struct {
-	readTask   *sync.WaitGroup
-	writeTask  *sync.WaitGroup
-	conn       *websocket.Conn
-	tx         chan []byte
-	agentMutex sync.Mutex
-	agent      *agent.Agent
+	readTask    *sync.WaitGroup
+	writeTask   *sync.WaitGroup
+	conn        *websocket.Conn
+	tx          chan []byte
+	botMutex    sync.Mutex
+	botInstance *bot.Bot
 }
 
 func NewWebSocketClient() *WebSocketClient {
@@ -176,9 +176,9 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 			return
 		}
 
-		client.agentMutex.Lock()
-		err = handlers.HandlePrepareToGame(client.tx, &client.agent, &lobbyData)
-		client.agentMutex.Unlock()
+		client.botMutex.Lock()
+		err = handlers.HandlePrepareToGame(client.tx, &client.botInstance, &lobbyData)
+		client.botMutex.Unlock()
 		if err != nil {
 			log.Printf("[System] 🚨 Error handling prepare to game: %v", err)
 		}
@@ -189,8 +189,8 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 	case packet.GameStarting:
 		fmt.Println("[System] 🎲 Game starting")
 
-		// Wait until agent is not None
-		for client.agent == nil {
+		// Wait until bot is not None
+		for client.botInstance == nil {
 			time.Sleep(100 * time.Millisecond)
 		}
 
@@ -226,13 +226,13 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 			return
 		}
 
-		client.agentMutex.Lock()
-		if client.agent != nil {
-			handlers.HandleNextMove(client.tx, client.agent, gameState)
+		client.botMutex.Lock()
+		if client.botInstance != nil {
+			handlers.HandleNextMove(client.tx, client.botInstance, gameState)
 		} else {
-			log.Println("[System] 🚨 Received GameStatePacket but agent is not initialized")
+			log.Println("[System] 🚨 Received GameStatePacket, but bot is not initialized")
 		}
-		client.agentMutex.Unlock()
+		client.botMutex.Unlock()
 
 	case packet.GameEndedPacket:
 		fmt.Println("[System] 🏁 Game ended")
@@ -244,9 +244,9 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 			return
 		}
 
-		client.agentMutex.Lock()
-		err := handlers.HandleGameEnded(client.agent, gameEnd)
-		client.agentMutex.Unlock()
+		client.botMutex.Lock()
+		err := handlers.HandleGameEnded(client.botInstance, gameEnd)
+		client.botMutex.Unlock()
 		if err != nil {
 			log.Printf("[System] 🚨 Error handling game ended: %v", err)
 		}
@@ -254,27 +254,27 @@ func (client *WebSocketClient) processTextMessage(p packet.Packet) {
 	// Warnings
 	case packet.CustomWarning:
 		message := p.Payload.(map[string]interface{})["message"].(string)
-		client.agentMutex.Lock()
-		handlers.HandleWarning(client.agent, warning.CustomWarning, &message)
-		client.agentMutex.Unlock()
+		client.botMutex.Lock()
+		handlers.HandleWarning(client.botInstance, warning.CustomWarning, &message)
+		client.botMutex.Unlock()
 	case packet.PlayerAlreadyMadeActionWarning:
-		client.agentMutex.Lock()
-		handlers.HandleWarning(client.agent, warning.PlayerAlreadyMadeActionWarning, nil)
-		client.agentMutex.Unlock()
+		client.botMutex.Lock()
+		handlers.HandleWarning(client.botInstance, warning.PlayerAlreadyMadeActionWarning, nil)
+		client.botMutex.Unlock()
 	case packet.ActionIgnoredDueToDeadWarning:
-		client.agentMutex.Lock()
-		handlers.HandleWarning(client.agent, warning.ActionIgnoredDueToDeadWarning, nil)
-		client.agentMutex.Unlock()
+		client.botMutex.Lock()
+		handlers.HandleWarning(client.botInstance, warning.ActionIgnoredDueToDeadWarning, nil)
+		client.botMutex.Unlock()
 	case packet.SlowResponseWarning:
-		client.agentMutex.Lock()
-		handlers.HandleWarning(client.agent, warning.SlowResponseWarning, nil)
-		client.agentMutex.Unlock()
+		client.botMutex.Lock()
+		handlers.HandleWarning(client.botInstance, warning.SlowResponseWarning, nil)
+		client.botMutex.Unlock()
 
 	// Errors
 	case packet.InvalidPacketTypeError:
-		fmt.Println("[System] 🚨 Client sent an invalid packet type error")
+		fmt.Println("[System] 🚨 Websocket client sent an invalid packet type error")
 	case packet.InvalidPacketUsageError:
-		fmt.Println("[System] 🚨 Client used packet in invalid way")
+		fmt.Println("[System] 🚨 Websocket client used packet in invalid way")
 
 	default:
 		log.Printf("[System] 🚨 Unknown packet type -> %s", p.Type)

@@ -1,35 +1,35 @@
-package agent
+package bot
 
 import (
 	"fmt"
 	"math/rand"
 
-	"hack-arena-2024-h2-go/packet/packets/agent_response"
-	"hack-arena-2024-h2-go/packet/packets/agent_response/ability"
-	"hack-arena-2024-h2-go/packet/packets/agent_response/movement"
-	"hack-arena-2024-h2-go/packet/packets/agent_response/rotation"
-	"hack-arena-2024-h2-go/packet/packets/game_end"
-	"hack-arena-2024-h2-go/packet/packets/game_state"
-	"hack-arena-2024-h2-go/packet/packets/lobby_data"
-	"hack-arena-2024-h2-go/packet/warning"
+	"hackarena2-0-mono-tanks-go/packet/packets/bot_response"
+	"hackarena2-0-mono-tanks-go/packet/packets/bot_response/ability"
+	"hackarena2-0-mono-tanks-go/packet/packets/bot_response/movement"
+	"hackarena2-0-mono-tanks-go/packet/packets/bot_response/rotation"
+	"hackarena2-0-mono-tanks-go/packet/packets/game_end"
+	"hackarena2-0-mono-tanks-go/packet/packets/game_state"
+	"hackarena2-0-mono-tanks-go/packet/packets/lobby_data"
+	"hackarena2-0-mono-tanks-go/packet/warning"
 )
 
-// Agent represents an AI player in the game.
-type Agent struct {
+// Bot represents an AI player in the game.
+type Bot struct {
 	MyID string
 }
 
-// OnJoiningLobby is called when the agent joins a lobby, creating a new instance of the agent.
-// This method initializes the agent with the lobby's current state and other relevant details.
+// OnJoiningLobby is called when the bot joins a lobby, creating a new instance of the bot.
+// This method initializes the bot with the lobby's current state and other relevant details.
 //
 // Parameters:
-//   - lobbyData: The initial state of the lobby when the agent joins.
+//   - lobbyData: The initial state of the lobby when the bot joins.
 //     Contains information like player data, game settings, etc.
 //
 // Returns:
-// - A new instance of the agent.
-func OnJoiningLobby(lobbyData *lobby_data.LobbyData) *Agent {
-	return &Agent{
+// - A new instance of the bot.
+func OnJoiningLobby(lobbyData *lobby_data.LobbyData) *Bot {
+	return &Bot{
 		MyID: lobbyData.PlayerID,
 	}
 }
@@ -42,26 +42,26 @@ func OnJoiningLobby(lobbyData *lobby_data.LobbyData) *Agent {
 // Parameters:
 //   - lobbyData: The updated state of the lobby, containing information
 //     like player details, game configurations, and other relevant data.
-//     This is the same data structure as the one provided when the agent
+//     This is the same data structure as the one provided when the bot
 //     first joined the lobby.
 //
 // Default Behavior:
 // By default, this method performs no action. To add custom behavior
 // when the lobby state changes, override this method in your implementation.
-func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
+func (b *Bot) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 	// Implement the logic for handling lobby data changes
 }
 
 // NextMove is called after each game tick, when new game state data is received from the server.
-// This method is responsible for determining the agent's next move based on the current game state.
+// This method is responsible for determining the bot's next move based on the current game state.
 //
 // Parameters:
 //   - gameState: The current state of the game, which includes all necessary information
-//     for the agent to decide its next action, such as the entire map with walls, tanks, bullets, zones, etc.
+//     for the bot to decide its next action, such as the entire map with walls, tanks, bullets, zones, etc.
 //
 // Returns:
-// - AgentResponse: The action or decision made by the agent, which will be communicated back to the game server.
-func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
+// - BotResponse: The action or decision made by the bot, which will be communicated back to the game server.
+func (b *Bot) NextMove(gameState *game_state.GameState) *bot_response.BotResponse {
 
 	// Print map as ascii
 	row_number := len(gameState.Visibility)
@@ -84,7 +84,7 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 
 			for _, tank := range gameState.Tanks {
 				if tank.X == col && tank.Y == row {
-					if tank.OwnerID == a.MyID {
+					if tank.OwnerID == b.MyID {
 						if tank.Direction == "up" {
 							fmt.Print("^ ")
 						} else if tank.Direction == "down" {
@@ -191,7 +191,7 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 	// Find my tank
 	var myTank *game_state.Tank
 	for _, tank := range gameState.Tanks {
-		if tank.OwnerID == a.MyID {
+		if tank.OwnerID == b.MyID {
 			myTank = &tank
 			break
 		}
@@ -199,7 +199,7 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 
 	// If my tank is not found, it is dead
 	if myTank == nil {
-		return agent_response.NewPass()
+		return bot_response.NewPass()
 	}
 
 	switch r := rand.Float32(); {
@@ -209,7 +209,7 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 		if rand.Intn(2) == 1 {
 			direction = movement.Backward
 		}
-		return agent_response.NewMovement(direction)
+		return bot_response.NewMovement(direction)
 	case r < 0.50:
 		// Rotate the tank and/or turret
 		randomRotation := func() string {
@@ -222,7 +222,7 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 				return ""
 			}
 		}
-		return agent_response.NewRotation(randomRotation(), randomRotation())
+		return bot_response.NewRotation(randomRotation(), randomRotation())
 	case r < 0.75:
 		// Use ability
 		abilities := []string{
@@ -233,20 +233,20 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 			ability.DropMine,
 		}
 		abilityType := abilities[rand.Intn(len(abilities))]
-		return agent_response.NewAbilityUse(abilityType)
+		return bot_response.NewAbilityUse(abilityType)
 	default:
 		// Pass
-		return agent_response.NewPass()
+		return bot_response.NewPass()
 	}
 }
 
 // OnWarningReceived is called when a warning is received from the server.
-// Please remember that if your agent is stuck processing a warning,
+// Please remember that if your bot is stuck processing a warning,
 // the next move won't be called and vice versa.
 //
 // Parameters:
 // - warning: The warning received from the server.
-func (a *Agent) OnWarningReceived(warn warning.Warning, message *string) {
+func (b *Bot) OnWarningReceived(warn warning.Warning, message *string) {
 	switch warn {
 	case warning.CustomWarning:
 		msg := "No message"
@@ -271,11 +271,11 @@ func (a *Agent) OnWarningReceived(warn warning.Warning, message *string) {
 //
 // Default Behavior:
 // By default, this method performs no action. You can override it to implement any post-game behavior,
-// such as logging, updating agent strategies, or other clean-up tasks.
+// such as logging, or other clean-up tasks.
 //
 // Notes:
 // - This method is optional to override, but it can be useful for handling game result analysis and logging.
-func (a *Agent) OnGameEnded(gameEnd *game_end.GameEnd) {
+func (b *Bot) OnGameEnded(gameEnd *game_end.GameEnd) {
 	var winner game_end.GameEndPlayer
 	for _, player := range gameEnd.Players {
 		if player.Score > winner.Score {
@@ -283,7 +283,7 @@ func (a *Agent) OnGameEnded(gameEnd *game_end.GameEnd) {
 		}
 	}
 
-	if winner.ID == a.MyID {
+	if winner.ID == b.MyID {
 		fmt.Println("I won!")
 	}
 

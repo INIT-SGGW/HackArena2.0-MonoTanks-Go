@@ -1,6 +1,6 @@
 package packets
 
-import "hack-arena-2024-h2-go/packet"
+import "hackarena2-0-mono-tanks-go/packet"
 
 type ReadyToReceiveGameState struct {
 }

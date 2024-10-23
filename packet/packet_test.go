@@ -2,9 +2,9 @@ package packet_test
 
 import (
 	"encoding/json"
-	"hack-arena-2024-h2-go/packet"
-	"hack-arena-2024-h2-go/packet/packets/game_end"
-	"hack-arena-2024-h2-go/packet/packets/lobby_data"
+	"hackarena2-0-mono-tanks-go/packet"
+	"hackarena2-0-mono-tanks-go/packet/packets/game_end"
+	"hackarena2-0-mono-tanks-go/packet/packets/lobby_data"
 	"testing"
 )
 

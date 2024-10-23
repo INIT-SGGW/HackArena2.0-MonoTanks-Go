@@ -1,36 +1,44 @@
-# Go WebSocket Client for Hackathon 2024
+# MonoTanks API wrapper in Go for HackArena 2.0
 
-This Go-based WebSocket client was developed for the Hackathon 2024, organized
-by WULS-SGGW. It serves as a framework for participants to create AI agents that
-can play the game.
+This API wrapper for MonoTanks game for the HackArena 2.0, organized by
+KN init. It is implemented as a WebSocket client written in Go programming
+language and can be used to create bots for the game.
 
 To fully test and run the game, you will also need the game server and GUI
 client, as the GUI provides a visual representation of gameplay. You can find
 more information about the server and GUI client in the following repository:
 
-- [Server and GUI Client Repository](https://github.com/INIT-SGGW/HackArena2024H2-Game)
+- [Server and GUI Client Repository](https://github.com/INIT-SGGW/HackArena2.0-MonoTanks)
 
 ## Development
 
-The agent logic you are going to implement is located in `agent/agent.go`:
+Clone this repo using git:
+```sh
+git clone https://github.com/INIT-SGGW/HackArena2.0-MonoTanks-Go.git
+```
+
+or download the [zip file](https://github.com/INIT-SGGW/HackArena2.0-MonoTanks-Go/archive/refs/heads/main.zip)
+and extract it.
+
+The bot logic you are going to implement is located in `bot/bot.go`:
 
 ```go
-// Agent represents an AI player in the game.
-type Agent struct {
+// Bot represents an AI player in the game.
+type Bot struct {
 	MyID string
 }
 
-// OnJoiningLobby is called when the agent joins a lobby, creating a new instance of the agent.
-// This method initializes the agent with the lobby's current state and other relevant details.
+// OnJoiningLobby is called when the bot joins a lobby, creating a new instance of the bot.
+// This method initializes the bot with the lobby's current state and other relevant details.
 //
 // Parameters:
-//   - lobbyData: The initial state of the lobby when the agent joins.
+//   - lobbyData: The initial state of the lobby when the bot joins.
 //     Contains information like player data, game settings, etc.
 //
 // Returns:
-// - A new instance of the agent.
-func OnJoiningLobby(lobbyData *lobby_data.LobbyData) *Agent {
-	return &Agent{
+// - A new instance of the bot.
+func OnJoiningLobby(lobbyData *lobby_data.LobbyData) *Bot {
+	return &Bot{
 		MyID: lobbyData.PlayerID,
 	}
 }
@@ -43,31 +51,156 @@ func OnJoiningLobby(lobbyData *lobby_data.LobbyData) *Agent {
 // Parameters:
 //   - lobbyData: The updated state of the lobby, containing information
 //     like player details, game configurations, and other relevant data.
-//     This is the same data structure as the one provided when the agent
+//     This is the same data structure as the one provided when the bot
 //     first joined the lobby.
 //
 // Default Behavior:
 // By default, this method performs no action. To add custom behavior
 // when the lobby state changes, override this method in your implementation.
-func (a *Agent) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
+func (b *Bot) OnLobbyDataChanged(lobbyData *lobby_data.LobbyData) {
 	// Implement the logic for handling lobby data changes
 }
 
 // NextMove is called after each game tick, when new game state data is received from the server.
-// This method is responsible for determining the agent's next move based on the current game state.
+// This method is responsible for determining the bot's next move based on the current game state.
 //
 // Parameters:
 //   - gameState: The current state of the game, which includes all necessary information
-//     for the agent to decide its next action, such as the entire map with walls, tanks, bullets, zones, etc.
+//     for the bot to decide its next action, such as the entire map with walls, tanks, bullets, zones, etc.
 //
 // Returns:
-// - AgentResponse: The action or decision made by the agent, which will be communicated back to the game server.
-func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentResponse {
+// - BotResponse: The action or decision made by the bot, which will be communicated back to the game server.
+func (b *Bot) NextMove(gameState *game_state.GameState) *bot_response.BotResponse {
+
+	// Print map as ascii
+	row_number := len(gameState.Visibility)
+	col_number := len(gameState.Visibility[0])
+
+	fmt.Println("Map:")
+	for row := 0; row < row_number; row++ {
+
+	out:
+		for col := 0; col < col_number; col++ {
+
+			isVisible := gameState.Visibility[row][col]
+
+			for _, wall := range gameState.Walls {
+				if wall.X == col && wall.Y == row {
+					fmt.Print("# ")
+					continue out
+				}
+			}
+
+			for _, tank := range gameState.Tanks {
+				if tank.X == col && tank.Y == row {
+					if tank.OwnerID == b.MyID {
+						if tank.Direction == "up" {
+							fmt.Print("^ ")
+						} else if tank.Direction == "down" {
+							fmt.Print("v ")
+						} else if tank.Direction == "left" {
+							fmt.Print("< ")
+						} else {
+							fmt.Print("> ")
+						}
+					} else {
+						fmt.Print("T ")
+					}
+					continue out
+				}
+			}
+
+			for _, bullet := range gameState.Bullets {
+				if bullet.X == col && bullet.Y == row {
+					if bullet.Type == "basic" {
+						if bullet.Direction == "up" {
+							fmt.Print("↑ ")
+						} else if bullet.Direction == "down" {
+							fmt.Print("↓ ")
+						} else if bullet.Direction == "left" {
+							fmt.Print("← ")
+						} else {
+							fmt.Print("→ ")
+						}
+					} else {
+						if bullet.Direction == "up" {
+							fmt.Print("⇈ ")
+						} else if bullet.Direction == "down" {
+							fmt.Print("⇊ ")
+						} else if bullet.Direction == "left" {
+							fmt.Print("⇇ ")
+						} else {
+							fmt.Print("⇉ ")
+						}
+					}
+					continue out
+				}
+			}
+
+			for _, laser := range gameState.Lasers {
+				if laser.X == col && laser.Y == row {
+					if laser.Orientation == "horizontal" {
+						fmt.Print("═ ")
+					} else {
+						fmt.Print("║ ")
+					}
+					continue out
+				}
+			}
+
+			for _, mine := range gameState.Mines {
+				if mine.X == col && mine.Y == row {
+					fmt.Print("X ")
+					continue out
+				}
+			}
+
+			for _, item := range gameState.Items {
+				if item.X == col && item.Y == row {
+					if item.Type == "doubleBullet" {
+						fmt.Print("D ")
+					} else if item.Type == "laser" {
+						fmt.Print("L ")
+					} else if item.Type == "radar" {
+						fmt.Print("R ")
+					} else if item.Type == "mine" {
+						fmt.Print("M ")
+					}
+					continue out
+				}
+			}
+
+			for _, zone := range gameState.Zones {
+				start_x := int(zone.X)
+				start_y := int(zone.Y)
+				end_x := int(zone.X) + int(zone.Width)
+				end_y := int(zone.Y) + int(zone.Height)
+
+				if col >= start_x && col <= end_x && row >= start_y && row <= end_y {
+					if isVisible {
+						fmt.Print(string(zone.Index) + " ")
+					} else {
+						fmt.Print(string(zone.Index+32) + " ")
+					}
+					continue out
+				}
+			}
+
+			if isVisible {
+				fmt.Print(". ")
+				continue out
+			}
+
+			fmt.Print("  ")
+
+		}
+		fmt.Println()
+	}
 
 	// Find my tank
 	var myTank *game_state.Tank
 	for _, tank := range gameState.Tanks {
-		if tank.OwnerID == a.MyID {
+		if tank.OwnerID == b.MyID {
 			myTank = &tank
 			break
 		}
@@ -75,7 +208,7 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 
 	// If my tank is not found, it is dead
 	if myTank == nil {
-		return agent_response.NewPass()
+		return bot_response.NewPass()
 	}
 
 	switch r := rand.Float32(); {
@@ -85,7 +218,7 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 		if rand.Intn(2) == 1 {
 			direction = movement.Backward
 		}
-		return agent_response.NewMovement(direction)
+		return bot_response.NewMovement(direction)
 	case r < 0.50:
 		// Rotate the tank and/or turret
 		randomRotation := func() string {
@@ -98,7 +231,7 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 				return ""
 			}
 		}
-		return agent_response.NewRotation(randomRotation(), randomRotation())
+		return bot_response.NewRotation(randomRotation(), randomRotation())
 	case r < 0.75:
 		// Use ability
 		abilities := []string{
@@ -109,20 +242,20 @@ func (a *Agent) NextMove(gameState *game_state.GameState) *agent_response.AgentR
 			ability.DropMine,
 		}
 		abilityType := abilities[rand.Intn(len(abilities))]
-		return agent_response.NewAbilityUse(abilityType)
+		return bot_response.NewAbilityUse(abilityType)
 	default:
 		// Pass
-		return agent_response.NewPass()
+		return bot_response.NewPass()
 	}
 }
 
 // OnWarningReceived is called when a warning is received from the server.
-// Please remember that if your agent is stuck processing a warning,
+// Please remember that if your bot is stuck processing a warning,
 // the next move won't be called and vice versa.
 //
 // Parameters:
 // - warning: The warning received from the server.
-func (a *Agent) OnWarningReceived(warn warning.Warning, message *string) {
+func (b *Bot) OnWarningReceived(warn warning.Warning, message *string) {
 	switch warn {
 	case warning.CustomWarning:
 		msg := "No message"
@@ -147,11 +280,11 @@ func (a *Agent) OnWarningReceived(warn warning.Warning, message *string) {
 //
 // Default Behavior:
 // By default, this method performs no action. You can override it to implement any post-game behavior,
-// such as logging, updating agent strategies, or other clean-up tasks.
+// such as logging, or other clean-up tasks.
 //
 // Notes:
 // - This method is optional to override, but it can be useful for handling game result analysis and logging.
-func (a *Agent) OnGameEnded(gameEnd *game_end.GameEnd) {
+func (b *Bot) OnGameEnded(gameEnd *game_end.GameEnd) {
 	var winner game_end.GameEndPlayer
 	for _, player := range gameEnd.Players {
 		if player.Score > winner.Score {
@@ -159,7 +292,7 @@ func (a *Agent) OnGameEnded(gameEnd *game_end.GameEnd) {
 		}
 	}
 
-	if winner.ID == a.MyID {
+	if winner.ID == b.MyID {
 		fmt.Println("I won!")
 	}
 
@@ -169,9 +302,9 @@ func (a *Agent) OnGameEnded(gameEnd *game_end.GameEnd) {
 }
 ```
 
-The `Agent` struct in `agent/agent.go` implements the agent's behavior in the game. The `OnJoiningLobby` function is called when the agent is created, the `NextMove` function is called every game tick to determine the agent's next move, and the `OnGameEnded` function is called when the game ends to provide the final game state.
+The `Bot` struct in `bot/bot.go` implements the bot's behavior in the game. The `OnJoiningLobby` function is called when the bot is created, the `NextMove` function is called every game tick to determine the bot's next move, and the `OnGameEnded` function is called when the game ends to provide the final game state.
 
-`NextMove` returns an `AgentResponse` struct from `packet/packets/agent_response/agent_response.go`, which can be one of the following:
+`NextMove` returns an `BotResponse` struct from `packet/packets/bot_response/bot_response.go`, which can be one of the following:
 
 - `Movement`: Move the tank forward or backward. The `Direction` field is set to "forward" for forward movement and "backward" for backward movement.
 - `Rotation`: Rotate the tank body and/or turret. Both `TankRotation` and `TurretRotation` fields use the following values:
@@ -183,22 +316,22 @@ The `Agent` struct in `agent/agent.go` implements the agent's behavior in the ga
 
 The `GameState` struct in `packet/packets/game_state/game_state.go` represents the current state of the game, including information about tanks, walls, bullets, players, and zones.
 
-You can modify the `agent/agent.go` file and create more files in the `agent` directory. Do not modify any other files, as this may prevent us from running your agent during the competition.
+You can modify the `bot/bot.go` file and create more files in the `bot` directory. Do not modify any other files, as this may prevent us from running your bot during the competition.
 
-If you want to extend the functionality of the `GameState` struct or other structs, create your own methods or helper functions within the `agent` package.
+If you want to extend the functionality of the `GameState` struct or other structs, create your own methods or helper functions within the `bot` package.
 
 ### Including Static Files
 
-If you need to include static files that your program should access during testing or execution, place them in the `data` folder. This folder is copied into the Docker image and will be accessible to your application at runtime. For example, you could include configuration files, pre-trained models, or any other data your agent might need.
+If you need to include static files that your program should access during testing or execution, place them in the `data` folder. This folder is copied into the Docker image and will be accessible to your application at runtime. For example, you could include configuration files, pre-trained models, or any other data your bot might need.
 
 
-## Running the Client
+## Running the Bot
 
-You can run this client locally, within a VS Code development container, or manually using Docker.
+You can run this bot locally, within a VS Code development container, or manually using Docker.
 
 ### Running Locally
 
-To run the client locally, you must have Go 1.21 or later installed. Verify
+To run the bot locally, you must have Go 1.21 or later installed. Verify
 your Go version by running:
 
 ```sh
@@ -206,7 +339,7 @@ go version
 ```
 
 Assuming the game server is running on `localhost:5000` (refer to the server
-repository's README for setup instructions), start the client by running:
+repository's README for setup instructions), start the bot by running:
 
 ```sh
 go run main.go --nickname TEAM_NAME
@@ -219,7 +352,7 @@ configuration options, run:
 go run main.go --help
 ```
 
-To build and run an optimized release version of the client, use:
+To build and run an optimized release version of the bot, use:
 
 ```sh
 go run main.go --nickname TEAM_NAME
@@ -227,7 +360,7 @@ go run main.go --nickname TEAM_NAME
 
 ### 2. Running in a VS Code Development Container
 
-To run the client within a VS Code development container, ensure you have Docker
+To run the bot within a VS Code development container, ensure you have Docker
 and Visual Studio Code (VS Code) installed, along with the Dev Containers
 extension.
 
@@ -243,7 +376,7 @@ Steps:
 Once the container is running, you can execute all necessary commands in VS
 Code's integrated terminal, as if you were running the project locally.
 
-When you are running the client in a container and the server is running on
+When you are running the bot in a container and the server is running on
 your local machine, use the `--host host.docker.internal` flag to connect the
 Docker container to your local host.
 
@@ -253,18 +386,18 @@ go run main.go --host host.docker.internal --nickname TEAM_NAME
 
 ### 3. Running in a Docker Container (Manual Setup)
 
-To run the client manually in a Docker container, ensure Docker is installed on
+To run the bot manually in a Docker container, ensure Docker is installed on
 your system.
 
 Steps:
 
 1. Build the Docker image:
    ```sh
-   docker build -t client .
+   docker build -t bot .
    ```
 2. Run the Docker container:
    ```sh
-   docker run --rm client --nickname TEAM_NAME --host host.docker.internal
+   docker run --rm bot --nickname TEAM_NAME --host host.docker.internal
    ```
 
 If the server is running on your local machine, use the

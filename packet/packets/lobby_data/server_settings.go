@@ -12,7 +12,7 @@ type ServerSettings struct {
 	// It is used to generate the grid and player starting positions.
 	Seed uint32 `json:"seed"`
 
-	// BroadcastInterval is the interval at which broadcast messages are sent to clients, in milliseconds.
+	// BroadcastInterval is the interval at which broadcast messages are sent to bots, in milliseconds.
 	BroadcastInterval uint32 `json:"broadcastInterval"`
 
 	// EagerBroadcast is a flag that determines whether broadcasts should happen
@@ -29,4 +29,7 @@ type ServerSettings struct {
 
 	// MatchName is the name of the match.
 	MatchName *string `json:"matchName"`
+
+	// Version is the version of the game running on the server.
+	Version string `json:"version"`
 }

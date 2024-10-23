@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"hack-arena-2024-h2-go/args"
-	"hack-arena-2024-h2-go/ws_client"
+	"hackarena2-0-mono-tanks-go/args"
+	"hackarena2-0-mono-tanks-go/ws_client"
 )
 
 func main() {
@@ -25,11 +25,11 @@ func main() {
 		log.Fatal("[System] 🌋 Error: Failed to retrieve parsed arguments")
 	}
 
-	fmt.Println("[System] 🚀 Starting client...")
+	fmt.Println("[System] 🚀 Starting bot...")
 	if err := startWebSocketClient(parsedArgs); err != nil {
 		log.Printf("[System] 🌋 Error: %v", err)
 	}
-	fmt.Println("[System] 🏁 Client stopped")
+	fmt.Println("[System] 🏁 Bot stopped")
 }
 
 func startWebSocketClient(parsedArgs *args.Args) error {

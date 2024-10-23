@@ -3,18 +3,18 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"hack-arena-2024-h2-go/agent"
-	"hack-arena-2024-h2-go/packet"
-	"hack-arena-2024-h2-go/packet/packets/lobby_data"
+	"hackarena2-0-mono-tanks-go/bot"
+	"hackarena2-0-mono-tanks-go/packet"
+	"hackarena2-0-mono-tanks-go/packet/packets/lobby_data"
 )
 
-func HandlePrepareToGame(tx chan []byte, agentInstance **agent.Agent, lobbyData *lobby_data.LobbyData) error {
-	if *agentInstance != nil {
-		(*agentInstance).OnLobbyDataChanged(lobbyData)
+func HandlePrepareToGame(tx chan []byte, botInstance **bot.Bot, lobbyData *lobby_data.LobbyData) error {
+	if *botInstance != nil {
+		(*botInstance).OnLobbyDataChanged(lobbyData)
 	} else {
-		fmt.Println("[System] 🤖 Creating agent")
-		*agentInstance = agent.OnJoiningLobby(lobbyData)
-		fmt.Println("[System] 🤖 Created agent")
+		fmt.Println("[System] 🤖 Creating bot")
+		*botInstance = bot.OnJoiningLobby(lobbyData)
+		fmt.Println("[System] 🤖 Created bot")
 
 		if lobbyData.ServerSettings.SandboxMode {
 			fmt.Println("[System] 🛠️ Sandbox mode enabled")

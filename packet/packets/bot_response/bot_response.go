@@ -1,13 +1,13 @@
-package agent_response
+package bot_response
 
 import (
 	"encoding/json"
 	"errors"
-	"hack-arena-2024-h2-go/packet"
+	"hackarena2-0-mono-tanks-go/packet"
 )
 
-// AgentResponse represents the various responses an agent can have in the system.
-type AgentResponse struct {
+// BotResponse represents the various responses an bot can have in the system.
+type BotResponse struct {
 	// Type represents the kind of response (e.g., Movement, Rotation, AbilityUse)
 	Type ResponseType `json:"-"`
 
@@ -27,7 +27,7 @@ type AgentResponse struct {
 	AbilityType string `json:"abilityType,omitempty"`
 }
 
-// ResponseType is an enumeration of the types of responses an agent can have.
+// ResponseType is an enumeration of the types of responses an bot can have.
 type ResponseType string
 
 const (
@@ -37,43 +37,43 @@ const (
 	Pass       ResponseType = "pass"
 )
 
-// NewMovement creates a new AgentResponse for tank movement.
+// NewMovement creates a new BotResponse for tank movement.
 // direction: "forward" or "backward"
-func NewMovement(direction string) *AgentResponse {
-	return &AgentResponse{
+func NewMovement(direction string) *BotResponse {
+	return &BotResponse{
 		Type:      Movement,
 		Direction: direction,
 	}
 }
 
-// NewRotation creates a new AgentResponse for tank rotation.
+// NewRotation creates a new BotResponse for tank rotation.
 // Both tankRotation and turretRotation use the following values:
 // "left" or "right", empty if not applicable
-func NewRotation(tankRotation, turretRotation string) *AgentResponse {
-	return &AgentResponse{
+func NewRotation(tankRotation, turretRotation string) *BotResponse {
+	return &BotResponse{
 		Type:           Rotation,
 		TankRotation:   tankRotation,
 		TurretRotation: turretRotation,
 	}
 }
 
-// NewAbilityUse creates a new AgentResponse for ability use.
-func NewAbilityUse(abilityType string) *AgentResponse {
-	return &AgentResponse{
+// NewAbilityUse creates a new BotResponse for ability use.
+func NewAbilityUse(abilityType string) *BotResponse {
+	return &BotResponse{
 		Type:        AbilityUse,
 		AbilityType: abilityType,
 	}
 }
 
-// NewPass creates a new AgentResponse for response pass.
-func NewPass() *AgentResponse {
-	return &AgentResponse{
+// NewPass creates a new BotResponse for response pass.
+func NewPass() *BotResponse {
+	return &BotResponse{
 		Type: Pass,
 	}
 }
 
-// MarshalJSON customizes the JSON representation of the AgentResponse type.
-func (ar *AgentResponse) MarshalJSON() ([]byte, error) {
+// MarshalJSON customizes the JSON representation of the BotResponse type.
+func (ar *BotResponse) MarshalJSON() ([]byte, error) {
 	switch ar.Type {
 	case Movement:
 		return json.Marshal(struct {
@@ -103,8 +103,8 @@ func (ar *AgentResponse) MarshalJSON() ([]byte, error) {
 	}
 }
 
-// UnmarshalJSON customizes the JSON deserialization of the AgentResponse type.
-func (ar *AgentResponse) UnmarshalJSON(data []byte) error {
+// UnmarshalJSON customizes the JSON deserialization of the BotResponse type.
+func (ar *BotResponse) UnmarshalJSON(data []byte) error {
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(data, &temp); err != nil {
 		return err
@@ -125,12 +125,12 @@ func (ar *AgentResponse) UnmarshalJSON(data []byte) error {
 	}
 }
 
-func (ar *AgentResponse) unmarshalMovement(temp map[string]json.RawMessage) error {
+func (ar *BotResponse) unmarshalMovement(temp map[string]json.RawMessage) error {
 	ar.Type = Movement
 	return json.Unmarshal(temp["direction"], &ar.Direction)
 }
 
-func (ar *AgentResponse) unmarshalRotation(temp map[string]json.RawMessage) error {
+func (ar *BotResponse) unmarshalRotation(temp map[string]json.RawMessage) error {
 	ar.Type = Rotation
 	if tankRotation, ok := temp["tankRotation"]; ok {
 		if err := json.Unmarshal(tankRotation, &ar.TankRotation); err != nil {
@@ -145,7 +145,7 @@ func (ar *AgentResponse) unmarshalRotation(temp map[string]json.RawMessage) erro
 	return nil
 }
 
-func (ar *AgentResponse) unmarshalAbilityUse(temp map[string]json.RawMessage) error {
+func (ar *BotResponse) unmarshalAbilityUse(temp map[string]json.RawMessage) error {
 	ar.Type = AbilityUse
 	return json.Unmarshal(temp["abilityType"], &ar.AbilityType)
 }
@@ -155,7 +155,7 @@ func hasKey(m map[string]json.RawMessage, key string) bool {
 	return ok
 }
 
-func (ar AgentResponse) ToPacket(gameStateID string) packet.Packet {
+func (ar BotResponse) ToPacket(gameStateID string) packet.Packet {
 	switch ar.Type {
 	case Movement:
 		return packet.Packet{

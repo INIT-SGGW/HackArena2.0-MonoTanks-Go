@@ -17,19 +17,19 @@ func NewCLIApp() *cli.App {
 	args := &Args{}
 
 	return &cli.App{
-		Name:    "hackathon_2024_h2_go_client",
-		Usage:   "Go client written for Hackathon 2024 H2 organized by KN inIT. The client is used to communicate with the server using WebSocket protocol. Your task is to implement bot logic. Each time the game state updates on the server, it is sent to you and you have to respond with your move. The game is played on a 2D grid. The game is turn-based. The player with the most points at the end of the game wins. Let the best bot win!",
+		Name:    "hackarena2_0_mono_tanks_go",
+		Usage:   "MonoTanks API wrapper in Go for HackArena 2.0 organized by KN init. The api wrapper is used to communicate with the server using WebSocket protocol. And your task is to implement bot logic. Each time the game state updates on the server, it is send to you and you have to respond with your move. The game is played on a 2D grid. The player with the most points at the end of the game wins. Let the best bot win!",
 		Version: "0.1.0",
 		Authors: []*cli.Author{
 			{
-				Name: "KN inIT",
+				Name: "KN init",
 			},
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "nickname",
 				Aliases:     []string{"n"},
-				Usage:       "Nickname of the agent that will be displayed in the game",
+				Usage:       "Nickname of the bot that will be displayed in the game",
 				Destination: &args.Nickname,
 				Required:    true,
 			},

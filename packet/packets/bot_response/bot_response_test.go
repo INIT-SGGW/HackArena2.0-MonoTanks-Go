@@ -1,18 +1,18 @@
-package agent_response
+package bot_response
 
 import (
 	"encoding/json"
-	"hack-arena-2024-h2-go/packet"
-	"hack-arena-2024-h2-go/packet/packets/agent_response/ability"
-	"hack-arena-2024-h2-go/packet/packets/agent_response/movement"
-	"hack-arena-2024-h2-go/packet/packets/agent_response/rotation"
+	"hackarena2-0-mono-tanks-go/packet"
+	"hackarena2-0-mono-tanks-go/packet/packets/bot_response/ability"
+	"hackarena2-0-mono-tanks-go/packet/packets/bot_response/movement"
+	"hackarena2-0-mono-tanks-go/packet/packets/bot_response/rotation"
 	"testing"
 )
 
-func TestAgentResponseSerialization(t *testing.T) {
+func TestBotResponseSerialization(t *testing.T) {
 	tests := []struct {
 		name         string
-		response     *AgentResponse
+		response     *BotResponse
 		gameStateID  string
 		expectedJSON string
 		expectedType packet.PacketType

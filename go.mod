@@ -1,4 +1,4 @@
-module hack-arena-2024-h2-go
+module hackarena2-0-mono-tanks-go
 
 go 1.22.7
 
